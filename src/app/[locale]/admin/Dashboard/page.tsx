@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import AdminDashboardClient from "./AdminDashboardClient";
 
 export default function AdminDashboardPage() {
-  return <AdminDashboardClient />;
+  return (
+    <Suspense fallback={null}>
+      <AdminDashboardClient />
+    </Suspense>
+  );
 }
