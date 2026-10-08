@@ -22,7 +22,6 @@ import {
   Users,
 } from "lucide-react";
 
-export const instant = false;
 
 type Locale = "ar" | "en";
 
