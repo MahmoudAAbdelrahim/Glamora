@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import HomeClient from "./HomeClient";
 import { isValidLocale } from "../../i18n/config";
 
-export const instant = false;
 
 export default async function Home({
   params,
