@@ -41,6 +41,25 @@ export default function ProductsPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [drawer, setDrawer] = useState(false);
+  useEffect(() => {
+  if (!drawer) return;
+
+  const previousOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      setDrawer(false);
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.body.style.overflow = previousOverflow;
+    window.removeEventListener("keydown", handleKeyDown);
+  };
+}, [drawer]);
   const [moreConcerns, setMoreConcerns] = useState(false);
   const [boundReady, setBoundReady] = useState(false);
 
@@ -156,8 +175,11 @@ export default function ProductsPage() {
       <div className="gl-list">
         {drawer && <div className="gl-scrim" onClick={() => setDrawer(false)} />}
 
-        <aside className={`gl-side ${drawer ? "open" : ""}`}>
-          <div className="gl-side-head">
+<aside
+  id="products-filter-drawer"
+  className={`gl-side ${drawer ? "open" : ""}`}
+  aria-hidden={!drawer}
+>          <div className="gl-side-head">
             <h2>{t.filters}</h2>
             <button type="button" className="gl-link" onClick={clearAll}>{t.clearAll}</button>
             <button type="button" className="gl-close" onClick={() => setDrawer(false)} aria-label="Close">
@@ -245,8 +267,14 @@ export default function ProductsPage() {
                 </button>
               ))}
             </div>
-            <button type="button" className="gl-filter-btn" onClick={() => setDrawer(true)}>
-              <SlidersHorizontal size={16} /> {t.filtersBtn}
+<button
+  type="button"
+  className="gl-filter-btn"
+  onClick={() => setDrawer(true)}
+  aria-expanded={drawer}
+  aria-controls="products-filter-drawer"
+>
+               <SlidersHorizontal size={16} /> {t.filtersBtn}
               {activeCount > 0 && <b>{activeCount}</b>}
             </button>
           </div>
@@ -440,10 +468,182 @@ const CSS = `
 .gl-empty p{margin:6px 0 16px}
 .gl-scrim{display:none}
 @media (max-width:1100px){.gl-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:860px){
- .gl-list{display:block}
- .gl-side{position:fixed;z-index:150;top:0;bottom:0;inset-inline-start:0;width:min(340px,88vw);overflow-y:auto;transform:translateX(-105%);transition:transform .25s}
- [dir=rtl] .gl-side{transform:translateX(105%)}
+/* Mobile filter drawer */
+@media (max-width: 860px) {
+  .gl-list {
+    display: block;
+    min-height: auto;
+  }
+
+  .gl-side {
+    position: fixed;
+    z-index: 1001;
+
+    top: max(12px, env(safe-area-inset-top));
+    bottom: max(12px, env(safe-area-inset-bottom));
+
+    left: 0;
+    right: auto;
+
+    width: min(360px, calc(100vw - 28px));
+    max-width: calc(100vw - 28px);
+    height: auto;
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+
+    padding: 24px 20px 28px;
+    background: var(--side);
+    border: 1px solid var(--ln);
+    border-radius: 18px;
+
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-110%);
+    transition:
+      transform 0.28s ease,
+      visibility 0.28s ease;
+
+    box-shadow: 0 20px 60px rgba(36, 21, 27, 0.2);
+  }
+
+  /* RTL: افتح القائمة من اليمين */
+  [dir="rtl"] .gl-side {
+    left: auto;
+    right: 0;
+    transform: translateX(110%);
+  }
+
+  /* القائمة ظاهرة بالكامل */
+  .gl-side.open {
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .gl-side-head {
+    position: sticky;
+    top: -24px;
+    z-index: 5;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin: -24px -20px 24px;
+    padding: 20px;
+    background: var(--side);
+    border-bottom: 1px solid var(--ln);
+  }
+
+  .gl-side-head h2 {
+    flex: 1;
+    min-width: 0;
+    font-size: 17px;
+  }
+
+  .gl-close {
+    display: grid;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+
+    border: 1px solid var(--ln);
+    border-radius: 12px;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .gl-close:hover {
+    background: var(--w);
+    color: #fff;
+  }
+
+  .gl-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    background: rgba(30, 20, 35, 0.58);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+
+  .gl-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gl-main {
+    min-width: 0;
+    padding: 20px 14px 50px;
+  }
+
+  .gl-bar {
+    flex-wrap: wrap;
+  }
+
+  .gl-search {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .gl-sort {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .gl-apply {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 520px) {
+  .gl-grid {
+    gap: 20px 12px;
+  }
+
+  .gl-name {
+    font-size: 13px;
+    min-height: 38px;
+  }
+
+  .gl-price strong {
+    font-size: 15px;
+  }
+
+  .gl-tabs {
+    order: 3;
+    width: 100%;
+  }
+
+  .gl-tabs button {
+    flex: 1;
+  }
+
+  .gl-side {
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    top: 8px;
+    bottom: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-side {
+    transition: none;
+  }
+}
  .gl-side.open{transform:none!important}
  .gl-scrim{display:block;position:fixed;inset:0;z-index:140;background:rgba(0,0,0,.4)}
  .gl-close{display:grid}

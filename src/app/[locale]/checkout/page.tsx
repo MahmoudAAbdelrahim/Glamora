@@ -1,95 +1,755 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ShoppingBag } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
-  BASE_CSS, LABELS, REFRESH_EVENT, SUMMARY_CSS, SummaryPanel, formatPrice, unitPrice, useCart,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Loader2,
+  Lock,
+  MapPin,
+  ShoppingBag,
+  User,
+} from "lucide-react";
+
+import {
+  BASE_CSS,
+  REFRESH_EVENT,
+  SUMMARY_CSS,
+  SummaryPanel,
+  useCart,
   type Locale,
 } from "../../../lib/sharedids";
 
-const GOVS: [string, string][] = [
-  ["Cairo", "القاهرة"], ["Giza", "الجيزة"], ["Alexandria", "الإسكندرية"], ["Qalyubia", "القليوبية"],
-  ["Sharqia", "الشرقية"], ["Dakahlia", "الدقهلية"], ["Gharbia", "الغربية"], ["Monufia", "المنوفية"],
-  ["Beheira", "البحيرة"], ["Kafr El Sheikh", "كفر الشيخ"], ["Damietta", "دمياط"], ["Port Said", "بورسعيد"],
-  ["Ismailia", "الإسماعيلية"], ["Suez", "السويس"], ["North Sinai", "شمال سيناء"], ["South Sinai", "جنوب سيناء"],
-  ["Fayoum", "الفيوم"], ["Beni Suef", "بني سويف"], ["Minya", "المنيا"], ["Asyut", "أسيوط"],
-  ["Sohag", "سوهاج"], ["Qena", "قنا"], ["Luxor", "الأقصر"], ["Aswan", "أسوان"],
-  ["Red Sea", "البحر الأحمر"], ["New Valley", "الوادي الجديد"], ["Matrouh", "مطروح"],
-];
-
-const T = {
-  en: {
-    title: "Checkout", delivery: "Delivery details", fullName: "Full name", phone: "Phone number",
-    phoneHint: "Egyptian mobile, e.g. 01012345678", governorate: "Governorate", choose: "Choose governorate",
-    city: "City / Area", address: "Street address", addressHint: "Street, building, floor, apartment",
-    notes: "Order notes (optional)", place: "Place Order", placing: "Placing order...",
-    required: "This field is required", badPhone: "Enter a valid Egyptian mobile number",
-    back: "Back to cart", empty: "Your cart is empty", browse: "Browse Products",
-    login: "Log in to place your order", loginBtn: "Log in", qty: "Qty",
-    failed: "We couldn't place your order. Please try again.",
-    doneTitle: "Order placed!", doneText: "Thank you. We'll call you to confirm your order, and you'll pay when it arrives.",
-    orderNo: "Order number", continue: "Continue Shopping",
-  },
-  ar: {
-    title: "إتمام الطلب", delivery: "بيانات التوصيل", fullName: "الاسم بالكامل", phone: "رقم الهاتف",
-    phoneHint: "رقم موبايل مصري، مثال: 01012345678", governorate: "المحافظة", choose: "اختر المحافظة",
-    city: "المدينة / المنطقة", address: "العنوان بالتفصيل", addressHint: "الشارع، رقم العمارة، الدور، الشقة",
-    notes: "ملاحظات على الطلب (اختياري)", place: "تأكيد الطلب", placing: "جاري تأكيد الطلب...",
-    required: "هذا الحقل مطلوب", badPhone: "اكتب رقم موبايل مصري صحيح",
-    back: "العودة للسلة", empty: "السلة فارغة", browse: "تصفح المنتجات",
-    login: "سجّل الدخول لإتمام طلبك", loginBtn: "تسجيل الدخول", qty: "الكمية",
-    failed: "تعذر تأكيد الطلب. حاول مرة أخرى.",
-    doneTitle: "تم تأكيد طلبك!", doneText: "شكرًا لك. هنتصل بيك لتأكيد الطلب، وهتدفع عند الاستلام.",
-    orderNo: "رقم الطلب", continue: "متابعة التسوق",
-  },
+type Form = {
+  fullName: string;
+  phone: string;
+  governorate: string;
+  city: string;
+  address: string;
+  notes: string;
 };
 
-type Form = { fullName: string; phone: string; governorate: string; city: string; address: string; notes: string };
-const emptyForm: Form = { fullName: "", phone: "", governorate: "", city: "", address: "", notes: "" };
+const GOVS: [string, string][] = [
+  ["Cairo", "القاهرة"],
+  ["Giza", "الجيزة"],
+  ["Alexandria", "الإسكندرية"],
+  ["Qalyubia", "القليوبية"],
+  ["Sharqia", "الشرقية"],
+  ["Dakahlia", "الدقهلية"],
+  ["Gharbia", "الغربية"],
+  ["Monufia", "المنوفية"],
+  ["Beheira", "البحيرة"],
+  ["Kafr El Sheikh", "كفر الشيخ"],
+  ["Damietta", "دمياط"],
+  ["Port Said", "بورسعيد"],
+  ["Ismailia", "الإسماعيلية"],
+  ["Suez", "السويس"],
+  ["North Sinai", "شمال سيناء"],
+  ["South Sinai", "جنوب سيناء"],
+  ["Fayoum", "الفيوم"],
+  ["Beni Suef", "بني سويف"],
+  ["Minya", "المنيا"],
+  ["Asyut", "أسيوط"],
+  ["Sohag", "سوهاج"],
+  ["Qena", "قنا"],
+  ["Luxor", "الأقصر"],
+  ["Aswan", "أسوان"],
+  ["Red Sea", "البحر الأحمر"],
+  ["New Valley", "الوادي الجديد"],
+  ["Matrouh", "مطروح"],
+];
+
+const emptyForm: Form = {
+  fullName: "",
+  phone: "",
+  governorate: "",
+  city: "",
+  address: "",
+  notes: "",
+};
+
+type ApiUser = {
+  _id?: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  profileImage?: {
+    url?: string;
+  };
+};
+
+const CHECKOUT_CSS = `
+  .gc-checkout-page {
+    --gc-wine: #8b1538;
+    --gc-wine-deep: #6d0f2b;
+    --gc-pink: #f4b6c2;
+    --gc-blush: #fbe4e8;
+    --gc-rose: #d6506f;
+    --gc-navy: #17213c;
+    --gc-text: #263047;
+    --gc-muted: #788196;
+    --gc-line: #eadde1;
+    --gc-soft: #fff8fa;
+    --gc-danger: #b42318;
+
+    min-height: 100vh;
+    background: #ffffff;
+    color: var(--gc-text);
+  }
+
+  .gc-checkout-page *,
+  .gc-checkout-page *::before,
+  .gc-checkout-page *::after {
+    box-sizing: border-box;
+  }
+
+  .gc-checkout-wrap {
+    width: min(1240px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 34px 0 90px;
+  }
+
+  .gc-checkout-hero {
+    margin-bottom: 28px;
+  }
+
+  .gc-checkout-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gc-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 800;
+    transition: color .2s ease, transform .2s ease;
+  }
+
+  .gc-checkout-back:hover {
+    color: var(--gc-wine);
+    transform: translateX(-2px);
+  }
+
+  [dir="rtl"] .gc-checkout-back:hover {
+    transform: translateX(2px);
+  }
+
+  .gc-checkout-heading {
+    margin: 18px 0 6px;
+    color: var(--gc-navy);
+    font-size: clamp(30px, 4vw, 44px);
+    line-height: 1.1;
+    font-weight: 950;
+    letter-spacing: -.8px;
+  }
+
+  .gc-checkout-subtitle {
+    margin: 0;
+    color: var(--gc-muted);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .gc-checkout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 390px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .gc-checkout-card {
+    border: 1px solid var(--gc-line);
+    border-radius: 28px;
+    background: #ffffff;
+    padding: 28px;
+    box-shadow: 0 18px 55px rgba(70, 20, 35, .07);
+  }
+
+  .gc-checkout-title {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 22px;
+  }
+
+  .gc-checkout-title-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: linear-gradient(
+      135deg,
+      var(--gc-wine),
+      var(--gc-wine-deep)
+    );
+    color: #ffffff;
+    box-shadow: 0 10px 22px rgba(139, 21, 56, .18);
+  }
+
+  .gc-checkout-title h2 {
+    margin: 0;
+    color: var(--gc-navy);
+    font-size: 21px;
+    line-height: 1.3;
+    font-weight: 900;
+  }
+
+  .gc-checkout-title p {
+    margin: 4px 0 0;
+    color: var(--gc-muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .gc-account-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    padding: 13px 15px;
+    border: 1px solid rgba(139, 21, 56, .10);
+    border-radius: 15px;
+    background: var(--gc-blush);
+    color: var(--gc-wine-deep);
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.7;
+  }
+
+  .gc-account-note svg {
+    flex: 0 0 auto;
+  }
+
+  .gc-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 17px;
+  }
+
+  .gc-field-full {
+    grid-column: 1 / -1;
+  }
+
+  .gc-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--gc-navy);
+    font-size: 13px;
+    font-weight: 850;
+  }
+
+  .gc-field input,
+  .gc-field select,
+  .gc-field textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--gc-line);
+    border-radius: 14px;
+    outline: none;
+    background: #ffffff;
+    color: var(--gc-text);
+    padding: 13px 14px;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    transition:
+      border-color .2s ease,
+      box-shadow .2s ease,
+      background .2s ease;
+  }
+
+  .gc-field input,
+  .gc-field select {
+    min-height: 48px;
+  }
+
+  .gc-field textarea {
+    min-height: 112px;
+    resize: vertical;
+  }
+
+  .gc-field input::placeholder,
+  .gc-field textarea::placeholder {
+    color: #a6acb9;
+  }
+
+  .gc-field input:focus,
+  .gc-field select:focus,
+  .gc-field textarea:focus {
+    border-color: var(--gc-wine);
+    box-shadow: 0 0 0 4px rgba(139, 21, 56, .08);
+  }
+
+  .gc-field .gc-locked {
+    background: #faf7f8;
+    color: #6f7788;
+    cursor: not-allowed;
+  }
+
+  .gc-field-error {
+    margin-top: 6px;
+    color: var(--gc-danger);
+    font-size: 12px;
+    font-weight: 750;
+  }
+
+  .gc-payment-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 17px;
+    border: 1px solid rgba(139, 21, 56, .22);
+    border-radius: 18px;
+    background: linear-gradient(
+      135deg,
+      #fff8fa,
+      #fbe4e8
+    );
+  }
+
+  .gc-payment-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: linear-gradient(
+      135deg,
+      var(--gc-wine),
+      var(--gc-wine-deep)
+    );
+    color: #ffffff;
+  }
+
+  .gc-payment-content strong {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--gc-navy);
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .gc-payment-content span {
+    color: var(--gc-muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .gc-error-box {
+    margin-top: 18px;
+    padding: 13px 15px;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    background: #fff5f5;
+    color: #991b1b;
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.7;
+  }
+
+  .gc-checkout-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 25px;
+  }
+
+  .gc-edit-cart {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    color: var(--gc-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 850;
+    transition: color .2s ease;
+  }
+
+  .gc-edit-cart:hover {
+    color: var(--gc-wine);
+  }
+
+  .gc-place-order {
+    min-height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 0 !important;
+    border-radius: 14px;
+    padding: 0 22px;
+    background: linear-gradient(
+      135deg,
+      var(--gc-wine),
+      var(--gc-wine-deep)
+    ) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(139, 21, 56, .22);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition:
+      transform .2s ease,
+      box-shadow .2s ease,
+      opacity .2s ease;
+  }
+
+  .gc-place-order *,
+  .gc-place-order svg {
+    color: #ffffff !important;
+  }
+
+  .gc-place-order:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(139, 21, 56, .28);
+  }
+
+  .gc-place-order:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .gc-place-order:disabled {
+    opacity: .62;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .gc-empty-state,
+  .gc-auth-state,
+  .gc-loading-state {
+    width: min(600px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 90px 0;
+    text-align: center;
+  }
+
+  .gc-state-icon {
+    width: 78px;
+    height: 78px;
+    margin: 0 auto 20px;
+    display: grid;
+    place-items: center;
+    border-radius: 24px;
+    background: linear-gradient(
+      135deg,
+      var(--gc-wine),
+      var(--gc-wine-deep)
+    );
+    color: #ffffff;
+    box-shadow: 0 14px 30px rgba(139, 21, 56, .18);
+  }
+
+  .gc-state-icon svg {
+    color: #ffffff;
+  }
+
+  .gc-state-title {
+    margin: 0;
+    color: var(--gc-navy);
+    font-size: 30px;
+    font-weight: 950;
+  }
+
+  .gc-state-text {
+    max-width: 470px;
+    margin: 12px auto 26px;
+    color: var(--gc-muted);
+    line-height: 1.8;
+    font-size: 14px;
+  }
+
+  .gc-login-button,
+  .gc-shopping-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 20px;
+    border-radius: 14px;
+    background: linear-gradient(
+      135deg,
+      var(--gc-wine),
+      var(--gc-wine-deep)
+    );
+    color: #ffffff !important;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 900;
+    box-shadow: 0 12px 26px rgba(139, 21, 56, .18);
+  }
+
+  .gc-login-button *,
+  .gc-shopping-button * {
+    color: #ffffff !important;
+  }
+
+  .gc-spin {
+    animation: gc-checkout-spin .85s linear infinite;
+  }
+
+  @keyframes gc-checkout-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 980px) {
+    .gc-checkout-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .gc-checkout-wrap {
+      width: min(100% - 28px, 600px);
+      padding: 24px 0 65px;
+    }
+
+    .gc-checkout-card {
+      padding: 19px;
+      border-radius: 22px;
+    }
+
+    .gc-form-grid {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+
+    .gc-field-full {
+      grid-column: auto;
+    }
+
+    .gc-checkout-actions {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
+
+    .gc-edit-cart,
+    .gc-place-order {
+      width: 100%;
+    }
+
+    .gc-place-order {
+      min-height: 52px;
+    }
+
+    .gc-checkout-title h2 {
+      font-size: 19px;
+    }
+
+    .gc-checkout-heading {
+      font-size: 32px;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .gc-checkout-wrap {
+      width: min(100% - 22px, 600px);
+    }
+
+    .gc-checkout-card {
+      padding: 16px;
+    }
+
+    .gc-checkout-title-icon {
+      width: 44px;
+      height: 44px;
+      flex-basis: 44px;
+    }
+
+    .gc-account-note {
+      align-items: flex-start;
+    }
+
+    .gc-payment-box {
+      align-items: flex-start;
+    }
+  }
+`;
 
 export default function CheckoutPage() {
-  const params = useParams<{ locale: string }>();
-  const locale: Locale = params.locale === "en" ? "en" : "ar";
+  const params = useParams();
+  const router = useRouter();
+
+  const locale = (
+    params?.locale === "en" ? "en" : "ar"
+  ) as Locale;
+
   const isAr = locale === "ar";
-  const t = T[locale];
-  const egp = LABELS[locale].egp;
   const cart = useCart();
-  const Back = isAr ? ArrowRight : ArrowLeft;
 
   const [form, setForm] = useState<Form>(emptyForm);
-  const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
+  const [loadingUser, setLoadingUser] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [orderNumber, setOrderNumber] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const [authError, setAuthError] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (key: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setForm((f) => ({ ...f, [key]: e.target.value }));
-    setErrors((er) => ({ ...er, [key]: undefined }));
-  };
+  useEffect(() => {
+    let cancelled = false;
 
-  const validate = () => {
-    const er: Partial<Record<keyof Form, string>> = {};
-    (["fullName", "governorate", "city", "address"] as const).forEach((k) => {
-      if (!form[k].trim()) er[k] = t.required;
-    });
-    if (!form.phone.trim()) er.phone = t.required;
-    else if (!/^01[0125]\d{8}$/.test(form.phone.trim())) er.phone = t.badPhone;
-    setErrors(er);
-    return Object.keys(er).length === 0;
-  };
+    async function loadUser() {
+      try {
+        setLoadingUser(true);
 
-  const placeOrder = async () => {
+        const res = await fetch("/api/auth/me", {
+          cache: "no-store",
+          credentials: "include",
+        });
+
+        if (res.status === 401) {
+          if (!cancelled) {
+            setAuthError(true);
+          }
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(
+            data?.message || "Failed to load user"
+          );
+        }
+
+        const user: ApiUser =
+          data?.user ||
+          data?.data?.user ||
+          null;
+
+        if (!user) {
+          setAuthError(true);
+          return;
+        }
+
+        if (!cancelled) {
+          setForm((prev) => ({
+            ...prev,
+            fullName: user.fullName || "",
+            phone: user.phone || "",
+            address:
+              typeof user.address === "string"
+                ? user.address
+                : "",
+            city: user.city || "",
+          }));
+        }
+      } catch (error) {
+        console.error(
+          "LOAD CHECKOUT USER ERROR:",
+          error
+        );
+
+        if (!cancelled) {
+          setAuthError(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingUser(false);
+        }
+      }
+    }
+
+    loadUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (cart.needLogin) {
+      setAuthError(true);
+    }
+  }, [cart.needLogin]);
+
+  function updateField(
+    field: keyof Form,
+    value: string
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [field]: "",
+    }));
+  }
+
+  function validate() {
+    const nextErrors: Record<string, string> = {};
+
+    if (!form.fullName.trim()) {
+      nextErrors.fullName = isAr
+        ? "الاسم مطلوب"
+        : "Full name is required";
+    }
+
+    if (!form.phone.trim()) {
+      nextErrors.phone = isAr
+        ? "رقم الهاتف مطلوب"
+        : "Phone is required";
+    }
+
+    if (!form.governorate) {
+      nextErrors.governorate = isAr
+        ? "اختر المحافظة"
+        : "Select governorate";
+    }
+
+    if (!form.city.trim()) {
+      nextErrors.city = isAr
+        ? "المدينة مطلوبة"
+        : "City is required";
+    }
+
+    if (!form.address.trim()) {
+      nextErrors.address = isAr
+        ? "العنوان مطلوب"
+        : "Address is required";
+    }
+
+    setErrors(nextErrors);
+
+    return Object.keys(nextErrors).length === 0;
+  }
+
+  async function placeOrder() {
+    if (authError) {
+      router.push(
+        `/${locale}/login?redirect=/${locale}/checkout`
+      );
+      return;
+    }
+
     if (!validate()) return;
-    setSubmitting(true);
-    setFailed(false);
+
+    if (!cart.items.length) return;
+
     try {
-      // NOTE: adjust the URL / body to match your orders API
+      setSubmitting(true);
+      setFailed(false);
+
       const res = await fetch("/api/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
         body: JSON.stringify({
           paymentMethod: "cod",
           shippingAddress: {
@@ -102,164 +762,491 @@ export default function CheckoutPage() {
           },
         }),
       });
+
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.message);
-      const order = data.data?.order ?? {};
-      setOrderNumber(order.orderNumber ?? order.id ?? null);
+
+      if (res.status === 401) {
+        router.push(
+          `/${locale}/login?redirect=/${locale}/checkout`
+        );
+        return;
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(
+          data?.message || "Failed to create order"
+        );
+      }
+
+      const order = data?.data?.order;
+
+      if (!order?._id) {
+        throw new Error(
+          "Order created but order ID is missing."
+        );
+      }
+
       cart.clear();
-      window.dispatchEvent(new Event(REFRESH_EVENT));
-      setDone(true);
-    } catch (e) {
-      console.error(e);
+
+      window.dispatchEvent(
+        new Event(REFRESH_EVENT)
+      );
+
+      router.replace(
+        `/${locale}/order-success/${order._id}`
+      );
+    } catch (error) {
+      console.error("CHECKOUT ERROR:", error);
       setFailed(true);
     } finally {
       setSubmitting(false);
     }
-  };
+  }
 
-  const state = (icon: React.ReactNode, title: string, text: string, href: string, cta: string) => (
-    <div className="gk-state">
-      {icon}
-      <h2>{title}</h2>
-      {text && <p>{text}</p>}
-      <Link href={href} className="gs-btn" style={{ maxWidth: 260 }}>{cta}</Link>
-    </div>
+  const BackIcon = isAr ? ArrowRight : ArrowLeft;
+  const NextIcon = isAr ? ArrowLeft : ArrowRight;
+
+  const style = (
+    <style
+      dangerouslySetInnerHTML={{
+        __html: `
+          ${BASE_CSS}
+          ${SUMMARY_CSS}
+          ${CHECKOUT_CSS}
+        `,
+      }}
+    />
   );
 
-  let body: React.ReactNode;
+  if (loadingUser) {
+    return (
+      <>
+        {style}
 
-  if (done) {
-    body = state(
-      <span className="gk-ok"><Check size={34} strokeWidth={3} /></span>,
-      t.doneTitle,
-      `${t.doneText}${orderNumber ? ` ${t.orderNo}: ${orderNumber}` : ""}`,
-      `/${locale}/products`,
-      t.continue
-    );
-  } else if (cart.loading) {
-    body = <div className="gk-skel" />;
-  } else if (cart.needLogin) {
-    body = state(<ShoppingBag size={38} />, t.login, "", `/${locale}/login?redirect=/${locale}/checkout`, t.loginBtn);
-  } else if (cart.items.length === 0) {
-    body = state(<ShoppingBag size={38} />, t.empty, "", `/${locale}/products`, t.browse);
-  } else {
-    const field = (key: keyof Form, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
-      <label className={`gk-field ${errors[key] ? "bad" : ""}`}>
-        <span>{label}</span>
-        <input value={form[key]} onChange={set(key)} {...props} />
-        {errors[key] && <em>{errors[key]}</em>}
-      </label>
-    );
+        <main
+          dir={isAr ? "rtl" : "ltr"}
+          className="gc-checkout-page gl-page"
+        >
+          <div className="gc-loading-state">
+            <div className="gc-state-icon">
+              <Loader2
+                size={34}
+                className="gc-spin"
+              />
+            </div>
 
-    body = (
-      <div className="gk-grid">
-        <section className="gk-form">
-          <h2>{t.delivery}</h2>
-
-          <div className="gk-two">
-            {field("fullName", t.fullName, { autoComplete: "name" })}
-            {field("phone", t.phone, { type: "tel", inputMode: "tel", placeholder: "01xxxxxxxxx", autoComplete: "tel", dir: "ltr" })}
+            <p className="gc-state-text">
+              {isAr
+                ? "جاري تحميل بيانات حسابك..."
+                : "Loading your account data..."}
+            </p>
           </div>
+        </main>
+      </>
+    );
+  }
 
-          <div className="gk-two">
-            <label className={`gk-field ${errors.governorate ? "bad" : ""}`}>
-              <span>{t.governorate}</span>
-              <select value={form.governorate} onChange={set("governorate")}>
-                <option value="">{t.choose}</option>
-                {GOVS.map(([en, ar]) => (
-                  <option key={en} value={en}>{isAr ? ar : en}</option>
-                ))}
-              </select>
-              {errors.governorate && <em>{errors.governorate}</em>}
-            </label>
-            {field("city", t.city, { autoComplete: "address-level2" })}
+  if (authError) {
+    return (
+      <>
+        {style}
+
+        <main
+          dir={isAr ? "rtl" : "ltr"}
+          className="gc-checkout-page gl-page"
+        >
+          <div className="gc-auth-state">
+            <div className="gc-state-icon">
+              <Lock size={32} />
+            </div>
+
+            <h1 className="gc-state-title">
+              {isAr
+                ? "يجب تسجيل الدخول أولًا"
+                : "Login required"}
+            </h1>
+
+            <p className="gc-state-text">
+              {isAr
+                ? "لا يمكن إتمام عملية الشراء قبل تسجيل الدخول إلى حسابك."
+                : "You need to login before completing your order."}
+            </p>
+
+            <Link
+              href={`/${locale}/login?redirect=/${locale}/checkout`}
+              className="gc-login-button"
+            >
+              <User size={18} />
+
+              {isAr
+                ? "تسجيل الدخول"
+                : "Login"}
+            </Link>
           </div>
+        </main>
+      </>
+    );
+  }
 
-          {field("address", t.address, { placeholder: t.addressHint, autoComplete: "street-address" })}
+  if (!cart.loading && !cart.items.length) {
+    return (
+      <>
+        {style}
 
-          <label className="gk-field">
-            <span>{t.notes}</span>
-            <textarea rows={3} value={form.notes} onChange={set("notes")} />
-          </label>
+        <main
+          dir={isAr ? "rtl" : "ltr"}
+          className="gc-checkout-page gl-page"
+        >
+          <div className="gc-empty-state">
+            <div className="gc-state-icon">
+              <ShoppingBag size={40} />
+            </div>
 
-          <Link href={`/${locale}/cart`} className="gk-back"><Back size={18} /> {t.back}</Link>
-        </section>
+            <h1 className="gc-state-title">
+              {isAr
+                ? "السلة فارغة"
+                : "Your cart is empty"}
+            </h1>
 
-        <SummaryPanel
-          locale={locale}
-          subtotal={cart.subtotal}
-          shipping={cart.shipping}
-          top={
-            <ul className="gk-items">
-              {cart.items.map((i) => (
-                <li key={i.product.id}>
-                  <span className="img">
-                    {i.product.images?.[0]?.url && <img src={i.product.images[0].url} alt="" />}
-                    <b>{i.quantity}</b>
-                  </span>
-                  <span className="n">{i.product.name}</span>
-                  <span className="p">{formatPrice(unitPrice(i) * i.quantity, locale)} {egp}</span>
-                </li>
-              ))}
-            </ul>
-          }
-          action={
-            <>
-              {failed && <p className="gk-fail" role="alert">{t.failed}</p>}
-              <button type="button" className="gs-btn" onClick={placeOrder} disabled={submitting}>
-                {submitting ? t.placing : t.place}
-              </button>
-            </>
-          }
-        />
-      </div>
+            <Link
+              href={`/${locale}`}
+              className="gc-shopping-button"
+              style={{ marginTop: 24 }}
+            >
+              {isAr
+                ? "العودة للتسوق"
+                : "Continue shopping"}
+            </Link>
+          </div>
+        </main>
+      </>
     );
   }
 
   return (
-    <main className="gl-store" dir={isAr ? "rtl" : "ltr"}>
-      <style>{BASE_CSS + SUMMARY_CSS + CSS}</style>
-      <div className="gk-wrap">
-        {!done && <h1>{t.title}</h1>}
-        {body}
-      </div>
-    </main>
+    <>
+      {style}
+
+      <main
+        dir={isAr ? "rtl" : "ltr"}
+        className="gc-checkout-page gl-page"
+      >
+        <div className="gc-checkout-wrap">
+          <header className="gc-checkout-hero">
+            <Link
+              href={`/${locale}/cart`}
+              className="gc-checkout-back"
+            >
+              <BackIcon size={18} />
+
+              {isAr
+                ? "العودة للسلة"
+                : "Back to cart"}
+            </Link>
+
+            <h1 className="gc-checkout-heading">
+              {isAr
+                ? "إتمام الطلب"
+                : "Checkout"}
+            </h1>
+
+            <p className="gc-checkout-subtitle">
+              {isAr
+                ? "بيانات حسابك تم تحميلها تلقائيًا."
+                : "Your account information has been loaded automatically."}
+            </p>
+          </header>
+
+          <div className="gc-checkout-grid">
+            <section className="gc-checkout-card">
+              <div className="gc-checkout-title">
+                <div className="gc-checkout-title-icon">
+                  <MapPin size={22} />
+                </div>
+
+                <div>
+                  <h2>
+                    {isAr
+                      ? "بيانات التوصيل"
+                      : "Delivery information"}
+                  </h2>
+
+                  <p>
+                    {isAr
+                      ? "بياناتك الأساسية مأخوذة من حسابك."
+                      : "Your basic details come from your account."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="gc-account-note">
+                <Lock size={17} />
+
+                <span>
+                  {isAr
+                    ? "الاسم ورقم الهاتف مأخوذان من الحساب المسجل."
+                    : "Name and phone are taken from your registered account."}
+                </span>
+              </div>
+
+              <div className="gc-form-grid">
+                <div className="gc-field">
+                  <label>
+                    {isAr
+                      ? "الاسم بالكامل"
+                      : "Full name"}
+                  </label>
+
+                  <input
+                    value={form.fullName}
+                    readOnly
+                    className="gc-locked"
+                  />
+
+                  {errors.fullName && (
+                    <div className="gc-field-error">
+                      {errors.fullName}
+                    </div>
+                  )}
+                </div>
+
+                <div className="gc-field">
+                  <label>
+                    {isAr
+                      ? "رقم الهاتف"
+                      : "Phone"}
+                  </label>
+
+                  <input
+                    value={form.phone}
+                    readOnly
+                    className="gc-locked"
+                  />
+
+                  {errors.phone && (
+                    <div className="gc-field-error">
+                      {errors.phone}
+                    </div>
+                  )}
+                </div>
+
+                <div className="gc-field">
+                  <label>
+                    {isAr
+                      ? "المحافظة"
+                      : "Governorate"}
+                  </label>
+
+                  <select
+                    value={form.governorate}
+                    onChange={(e) =>
+                      updateField(
+                        "governorate",
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="">
+                      {isAr
+                        ? "اختر المحافظة"
+                        : "Select governorate"}
+                    </option>
+
+                    {GOVS.map(([en, ar]) => (
+                      <option
+                        key={en}
+                        value={en}
+                      >
+                        {isAr ? ar : en}
+                      </option>
+                    ))}
+                  </select>
+
+                  {errors.governorate && (
+                    <div className="gc-field-error">
+                      {errors.governorate}
+                    </div>
+                  )}
+                </div>
+
+                <div className="gc-field">
+                  <label>
+                    {isAr
+                      ? "المدينة"
+                      : "City"}
+                  </label>
+
+                  <input
+                    value={form.city}
+                    onChange={(e) =>
+                      updateField(
+                        "city",
+                        e.target.value
+                      )
+                    }
+                    placeholder={
+                      isAr
+                        ? "اكتب المدينة"
+                        : "Enter city"
+                    }
+                  />
+
+                  {errors.city && (
+                    <div className="gc-field-error">
+                      {errors.city}
+                    </div>
+                  )}
+                </div>
+
+                <div className="gc-field gc-field-full">
+                  <label>
+                    {isAr
+                      ? "العنوان بالتفصيل"
+                      : "Full address"}
+                  </label>
+
+                  <textarea
+                    value={form.address}
+                    onChange={(e) =>
+                      updateField(
+                        "address",
+                        e.target.value
+                      )
+                    }
+                    placeholder={
+                      isAr
+                        ? "الشارع، رقم المنزل، الدور، الشقة..."
+                        : "Street, building, floor, apartment..."
+                    }
+                  />
+
+                  {errors.address && (
+                    <div className="gc-field-error">
+                      {errors.address}
+                    </div>
+                  )}
+                </div>
+
+                <div className="gc-field gc-field-full">
+                  <label>
+                    {isAr
+                      ? "ملاحظات إضافية"
+                      : "Additional notes"}
+                  </label>
+
+                  <textarea
+                    value={form.notes}
+                    onChange={(e) =>
+                      updateField(
+                        "notes",
+                        e.target.value
+                      )
+                    }
+                    placeholder={
+                      isAr
+                        ? "أي ملاحظات خاصة بالتوصيل..."
+                        : "Any delivery notes..."
+                    }
+                  />
+                </div>
+
+                <div className="gc-field gc-field-full">
+                  <label>
+                    {isAr
+                      ? "طريقة الدفع"
+                      : "Payment method"}
+                  </label>
+
+                  <div className="gc-payment-box">
+                    <div className="gc-payment-icon">
+                      <ShoppingBag size={23} />
+                    </div>
+
+                    <div className="gc-payment-content">
+                      <strong>
+                        {isAr
+                          ? "الدفع عند الاستلام"
+                          : "Cash on delivery"}
+                      </strong>
+
+                      <span>
+                        {isAr
+                          ? "ادفع قيمة الطلب عند وصوله."
+                          : "Pay when your order arrives."}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {failed && (
+                <div className="gc-error-box">
+                  {isAr
+                    ? "حدث خطأ أثناء إنشاء الطلب. حاول مرة أخرى."
+                    : "Something went wrong while creating your order. Please try again."}
+                </div>
+              )}
+
+              <div className="gc-checkout-actions">
+                <Link
+                  href={`/${locale}/cart`}
+                  className="gc-edit-cart"
+                >
+                  <BackIcon size={18} />
+
+                  {isAr
+                    ? "تعديل السلة"
+                    : "Edit cart"}
+                </Link>
+
+                <button
+                  type="button"
+                  className="gc-place-order"
+                  onClick={placeOrder}
+                  disabled={
+                    submitting ||
+                    cart.loading ||
+                    !cart.items.length
+                  }
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2
+                        size={18}
+                        className="gc-spin"
+                      />
+
+                      {isAr
+                        ? "جاري إنشاء الطلب..."
+                        : "Creating order..."}
+                    </>
+                  ) : (
+                    <>
+                      <Check size={18} />
+
+                      {isAr
+                        ? "تأكيد الطلب"
+                        : "Place order"}
+
+                      <NextIcon size={18} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </section>
+
+            <aside>
+              <SummaryPanel
+                locale={locale}
+                items={cart.items}
+                subtotal={cart.subtotal}
+                shipping={cart.shipping}
+                total={cart.total}
+              />
+            </aside>
+          </div>
+        </div>
+      </main>
+    </>
   );
 }
-
-const CSS = `
-.gk-wrap{max-width:1180px;margin:0 auto;padding:26px 24px 80px}
-.gk-wrap h1{margin:0 0 26px;font-size:26px;font-weight:800}
-.gk-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:34px;align-items:start}
-.gk-form h2{margin:0 0 20px;font-size:19px;font-weight:800}
-.gk-two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.gk-field{display:block;margin-bottom:18px}
-.gk-field>span{display:block;margin-bottom:8px;font-size:14px;font-weight:700}
-.gk-field input,.gk-field select,.gk-field textarea{width:100%;min-height:50px;padding:0 14px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:15px;outline:0;transition:border-color .2s,box-shadow .2s}
-.gk-field textarea{padding:12px 14px;resize:vertical}
-.gk-field select option{color:#2a1a1f}
-.gk-field input:focus,.gk-field select:focus,.gk-field textarea:focus{border-color:var(--w);box-shadow:0 0 0 3px color-mix(in srgb,var(--w) 12%,transparent)}
-.gk-field.bad input,.gk-field.bad select{border-color:#c33d4b}
-.gk-field em{display:block;margin-top:6px;color:#c33d4b;font-size:12px;font-style:normal;font-weight:600}
-.gk-back{display:inline-flex;align-items:center;gap:10px;margin-top:6px;color:var(--w);font-weight:800}
-.gk-back:hover{text-decoration:underline}
-.gk-items{list-style:none;margin:0 0 18px;padding:0 0 6px;display:grid;gap:12px;max-height:260px;overflow:auto}
-.gk-items li{display:flex;align-items:center;gap:12px;font-size:14px}
-.gk-items .img{position:relative;width:48px;height:48px;flex:0 0 48px;border-radius:9px;background:var(--soft);display:block}
-.gk-items .img img{width:100%;height:100%;object-fit:cover;border-radius:9px}
-.gk-items .img b{position:absolute;top:-6px;inset-inline-end:-6px;min-width:19px;height:19px;padding:0 4px;border-radius:10px;background:var(--w);color:#fff;font-size:11px;display:grid;place-items:center}
-.gk-items .n{flex:1;min-width:0;font-weight:600;line-height:1.35}
-.gk-items .p{font-weight:800;white-space:nowrap}
-.gk-fail{margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#fde8eb;color:#a8283a;font-size:13px;font-weight:700}
-.gk-state{min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:var(--mu)}
-.gk-state h2{margin:6px 0 0;color:var(--ink);font-size:24px}
-.gk-state p{max-width:460px;margin:0 0 14px;line-height:1.8}
-.gk-state svg{color:var(--w)}
-.gk-state .gs-btn{text-decoration:none}
-.gk-ok{width:76px;height:76px;border-radius:50%;background:var(--w);display:grid;place-items:center}
-.gk-ok svg{color:#fff}
-.gk-skel{height:420px;border-radius:14px;background:linear-gradient(90deg,var(--soft),var(--ln),var(--soft));background-size:200% 100%;animation:gksh 1.3s infinite}
-@keyframes gksh{to{background-position:-200% 0}}
-@media (max-width:960px){.gk-grid{grid-template-columns:1fr}}
-@media (max-width:560px){.gk-wrap{padding:18px 14px 60px}.gk-two{grid-template-columns:1fr;gap:0}}
-`;

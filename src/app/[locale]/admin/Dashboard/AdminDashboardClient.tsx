@@ -1,10 +1,8 @@
 "use client";
 
-
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-
 
 import {
   ArrowDownRight,
@@ -21,7 +19,6 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-
 
 type Locale = "ar" | "en";
 
@@ -273,10 +270,7 @@ export default function AdminDashboardPage() {
 
   const t = translations[locale];
 
-  const [data, setData] = useState<DashboardData | null>(
-    null
-  );
-
+  const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -335,7 +329,6 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <>
-
         <main
           className="admin-page admin-loading-page"
           dir={locale === "ar" ? "rtl" : "ltr"}
@@ -357,7 +350,6 @@ export default function AdminDashboardPage() {
   if (error || !data) {
     return (
       <>
-
         <main
           className="admin-page admin-loading-page"
           dir={locale === "ar" ? "rtl" : "ltr"}
@@ -386,7 +378,6 @@ export default function AdminDashboardPage() {
 
   return (
     <>
-    
       <main
         className="admin-page"
         dir={locale === "ar" ? "rtl" : "ltr"}
@@ -394,8 +385,6 @@ export default function AdminDashboardPage() {
         <style jsx>{CSS}</style>
 
         <div className="admin-container">
-
-          {/* HEADER */}
 
           <header className="admin-topbar">
             <div className="admin-heading">
@@ -424,8 +413,6 @@ export default function AdminDashboardPage() {
               <ChevronDown size={15} />
             </button>
           </header>
-
-          {/* STATISTICS */}
 
           <section className="admin-stats">
 
@@ -464,8 +451,6 @@ export default function AdminDashboardPage() {
             />
 
           </section>
-
-          {/* SALES + ORDERS */}
 
           <section className="admin-main-grid">
 
@@ -594,8 +579,6 @@ export default function AdminDashboardPage() {
 
           </section>
 
-          {/* USERS */}
-
           <section className="admin-card">
 
             <div className="admin-card-header">
@@ -611,7 +594,7 @@ export default function AdminDashboardPage() {
               </div>
 
               <Link
-                href={`/${locale}/admin/Dashboard/users`}
+                href={`/${locale}/admin/dashboard/users`}
                 className="admin-view-link"
               >
                 {t.viewAll}
@@ -675,8 +658,6 @@ export default function AdminDashboardPage() {
 
           </section>
 
-          {/* QUICK ACTIONS */}
-
           <section className="admin-card admin-quick-card">
 
             <div className="admin-card-header">
@@ -701,7 +682,7 @@ export default function AdminDashboardPage() {
             <div className="admin-actions">
 
               <Link
-                href={`/${locale}/admin/Dashboard/products/add`}
+                href={`/${locale}/admin/dashboard/products/create`}
                 className="admin-action"
               >
                 <Package size={21} />
@@ -709,7 +690,7 @@ export default function AdminDashboardPage() {
               </Link>
 
               <Link
-                href={`/${locale}/admin/Dashboard/users`}
+                href={`/${locale}/admin/dashboard/users`}
                 className="admin-action"
               >
                 <UserRound size={21} />
@@ -717,7 +698,7 @@ export default function AdminDashboardPage() {
               </Link>
 
               <Link
-                href={`/${locale}/admin/Dashboard/orders`}
+                href={`/${locale}/admin/dashboard/orders`}
                 className="admin-action"
               >
                 <ShoppingCart size={21} />
@@ -735,6 +716,7 @@ export default function AdminDashboardPage() {
 }
 
 const CSS = `
+
 .admin-page{
   min-height:100vh;
   background:
@@ -773,6 +755,8 @@ const CSS = `
   width:100%;
   max-width:1600px;
   margin:0 auto;
+  position:relative;
+  z-index:2;
 }
 
 .admin-topbar{
@@ -781,6 +765,7 @@ const CSS = `
   justify-content:space-between;
   gap:20px;
   margin-bottom:28px;
+  animation:adminFadeDown .8s cubic-bezier(.22,1,.36,1) both;
 }
 
 .admin-heading{
@@ -797,6 +782,11 @@ const CSS = `
   font-size:.78rem;
   font-weight:800;
   letter-spacing:.08em;
+  animation:adminFadeUp .7s .08s cubic-bezier(.22,1,.36,1) both;
+}
+
+.admin-kicker svg{
+  animation:adminSparkle 2.2s ease-in-out infinite;
 }
 
 .admin-title{
@@ -804,12 +794,14 @@ const CSS = `
   font-family:Georgia,"Times New Roman",serif;
   font-size:clamp(1.8rem,3vw,2.7rem);
   font-weight:700;
+  animation:adminFadeUp .8s .16s cubic-bezier(.22,1,.36,1) both;
 }
 
 .admin-subtitle{
   margin:0;
   color:#7a6a6f;
   font-size:.9rem;
+  animation:adminFadeUp .8s .24s cubic-bezier(.22,1,.36,1) both;
 }
 
 :global(.dark) .admin-subtitle{
@@ -827,6 +819,25 @@ const CSS = `
   color:#6e0f2c;
   font-weight:700;
   cursor:pointer;
+  animation:adminFadeRight .8s .2s cubic-bezier(.22,1,.36,1) both;
+  transition:
+    transform .3s cubic-bezier(.22,1,.36,1),
+    box-shadow .3s ease,
+    border-color .3s ease;
+}
+
+.admin-period:hover{
+  transform:translateY(-3px);
+  border-color:#d98799;
+  box-shadow:0 10px 25px rgba(139,21,56,.12);
+}
+
+.admin-period svg:last-child{
+  transition:transform .3s ease;
+}
+
+.admin-period:hover svg:last-child{
+  transform:translateY(2px);
 }
 
 :global(.dark) .admin-period{
@@ -848,6 +859,33 @@ const CSS = `
   border:1px solid #f0dfe3;
   border-radius:18px;
   box-shadow:0 12px 35px rgba(92,30,48,.055);
+  position:relative;
+  overflow:hidden;
+}
+
+.admin-stat-card::after,
+.admin-card::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-120%;
+  width:55%;
+  height:100%;
+  pointer-events:none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.22),
+      transparent
+    );
+  transform:skewX(-18deg);
+  transition:left .8s ease;
+}
+
+.admin-stat-card:hover::after,
+.admin-card:hover::after{
+  left:140%;
 }
 
 :global(.dark) .admin-stat-card,
@@ -863,10 +901,32 @@ const CSS = `
     transform .25s ease,
     box-shadow .25s ease,
     border-color .25s ease;
+  opacity:0;
+  animation:
+    adminCardReveal
+    .75s
+    cubic-bezier(.22,1,.36,1)
+    forwards;
+}
+
+.admin-stats .admin-stat-card:nth-child(1){
+  animation-delay:.12s;
+}
+
+.admin-stats .admin-stat-card:nth-child(2){
+  animation-delay:.2s;
+}
+
+.admin-stats .admin-stat-card:nth-child(3){
+  animation-delay:.28s;
+}
+
+.admin-stats .admin-stat-card:nth-child(4){
+  animation-delay:.36s;
 }
 
 .admin-stat-card:hover{
-  transform:translateY(-4px);
+  transform:translateY(-5px);
   border-color:#e7b4c0;
   box-shadow:0 18px 42px rgba(92,30,48,.11);
 }
@@ -887,6 +947,14 @@ const CSS = `
   border-radius:13px;
   background:#fbe4e8;
   color:#8b1538;
+  transition:
+    transform .35s cubic-bezier(.22,1,.36,1),
+    box-shadow .35s ease;
+}
+
+.admin-stat-card:hover .admin-stat-icon{
+  transform:rotate(-8deg) scale(1.1);
+  box-shadow:0 10px 25px rgba(139,21,56,.16);
 }
 
 :global(.dark) .admin-stat-icon{
@@ -919,6 +987,18 @@ const CSS = `
   margin:5px 0;
   font-size:1.75rem;
   font-weight:900;
+  transition:
+    transform .3s ease,
+    color .3s ease;
+}
+
+.admin-stat-card:hover .admin-stat-value{
+  transform:translateX(3px);
+  color:#8b1538;
+}
+
+:global(.dark) .admin-stat-card:hover .admin-stat-value{
+  color:#f4b6c2;
 }
 
 .admin-stat-description{
@@ -931,11 +1011,20 @@ const CSS = `
   grid-template-columns:minmax(0,1.7fr) minmax(300px,.9fr);
   gap:22px;
   margin-bottom:22px;
+  animation:adminFadeUp .9s .4s cubic-bezier(.22,1,.36,1) both;
 }
 
 .admin-card{
   padding:22px;
   margin-bottom:22px;
+}
+
+.admin-main-grid>.admin-card:first-child{
+  animation:adminCardReveal .8s .42s cubic-bezier(.22,1,.36,1) both;
+}
+
+.admin-main-grid>.admin-card:last-child{
+  animation:adminCardReveal .8s .52s cubic-bezier(.22,1,.36,1) both;
 }
 
 .admin-card-header{
@@ -969,6 +1058,25 @@ const CSS = `
   font-size:.78rem;
   font-weight:800;
   text-decoration:none;
+  position:relative;
+}
+
+.admin-view-link::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-4px;
+  height:1px;
+  background:currentColor;
+  transform:scaleX(0);
+  transform-origin:right;
+  transition:transform .3s ease;
+}
+
+.admin-view-link:hover::after{
+  transform:scaleX(1);
+  transform-origin:left;
 }
 
 .admin-view-link:hover{
@@ -993,12 +1101,13 @@ const CSS = `
   content:"";
   position:absolute;
   inset:0;
-  background:repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 51px,
-    rgba(139,21,56,.055) 52px
-  );
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 51px,
+      rgba(139,21,56,.055) 52px
+    );
   pointer-events:none;
 }
 
@@ -1018,17 +1127,63 @@ const CSS = `
   width:min(46px,70%);
   min-height:20px;
   border-radius:10px 10px 3px 3px;
-  background:linear-gradient(
-    to top,
-    #6e0f2c,
-    #8b1538 65%,
-    #d98799
-  );
-  transition:transform .25s ease;
+  background:
+    linear-gradient(
+      to top,
+      #6e0f2c,
+      #8b1538 65%,
+      #d98799
+    );
+  transform-origin:bottom;
+  transform:scaleY(0);
+  animation:
+    adminBarGrow
+    1s
+    cubic-bezier(.22,1,.36,1)
+    forwards;
+  box-shadow:0 8px 18px rgba(139,21,56,.12);
+  transition:
+    transform .25s ease,
+    filter .25s ease;
+}
+
+.admin-chart-column:nth-child(1) .admin-chart-bar{
+  animation-delay:.45s;
+}
+
+.admin-chart-column:nth-child(2) .admin-chart-bar{
+  animation-delay:.5s;
+}
+
+.admin-chart-column:nth-child(3) .admin-chart-bar{
+  animation-delay:.55s;
+}
+
+.admin-chart-column:nth-child(4) .admin-chart-bar{
+  animation-delay:.6s;
+}
+
+.admin-chart-column:nth-child(5) .admin-chart-bar{
+  animation-delay:.65s;
+}
+
+.admin-chart-column:nth-child(6) .admin-chart-bar{
+  animation-delay:.7s;
+}
+
+.admin-chart-column:nth-child(7) .admin-chart-bar{
+  animation-delay:.75s;
+}
+
+.admin-chart-column:nth-child(8) .admin-chart-bar{
+  animation-delay:.8s;
 }
 
 .admin-chart-column:hover .admin-chart-bar{
-  transform:translateY(-5px);
+  transform:
+    translateY(-5px)
+    scaleX(1.08);
+  filter:brightness(1.08);
 }
 
 .admin-chart-day{
@@ -1064,13 +1219,25 @@ const CSS = `
   display:flex;
   align-items:center;
   justify-content:center;
-  background:conic-gradient(
-    #8b1538 0deg 185deg,
-    #d98699 185deg 275deg,
-    #f4b6c2 275deg 330deg,
-    #e8d9dd 330deg 360deg
-  );
+  background:
+    conic-gradient(
+      #8b1538 0deg 185deg,
+      #d98699 185deg 275deg,
+      #f4b6c2 275deg 330deg,
+      #e8d9dd 330deg 360deg
+    );
   position:relative;
+  animation:
+    adminDonutReveal
+    1.2s
+    cubic-bezier(.22,1,.36,1)
+    both,
+    adminDonutFloat
+    5s
+    1.2s
+    ease-in-out
+    infinite;
+  box-shadow:0 18px 45px rgba(139,21,56,.14);
 }
 
 .admin-donut::after{
@@ -1090,6 +1257,12 @@ const CSS = `
   position:relative;
   z-index:2;
   text-align:center;
+  animation:
+    adminScaleIn
+    .7s
+    .8s
+    cubic-bezier(.22,1,.36,1)
+    both;
 }
 
 .admin-donut-number{
@@ -1106,6 +1279,12 @@ const CSS = `
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:12px 20px;
+  animation:
+    adminFadeUp
+    .8s
+    .75s
+    cubic-bezier(.22,1,.36,1)
+    both;
 }
 
 .admin-legend-item{
@@ -1114,6 +1293,11 @@ const CSS = `
   gap:8px;
   color:#706066;
   font-size:.75rem;
+  transition:transform .25s ease;
+}
+
+.admin-legend-item:hover{
+  transform:translateX(-4px);
 }
 
 :global(.dark) .admin-legend-item{
@@ -1125,6 +1309,15 @@ const CSS = `
   height:9px;
   border-radius:50%;
   background:#8b1538;
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+}
+
+.admin-legend-item:hover .admin-legend-dot{
+  transform:scale(1.45);
+  box-shadow:
+    0 0 0 5px rgba(139,21,56,.08);
 }
 
 .admin-legend-dot.processing{
@@ -1151,11 +1344,40 @@ const CSS = `
   gap:12px;
   padding:11px 8px;
   border-radius:12px;
-  transition:background .2s ease;
+  transition:
+    background .2s ease,
+    transform .25s ease;
+  opacity:0;
+  animation:
+    adminUserReveal
+    .55s
+    cubic-bezier(.22,1,.36,1)
+    forwards;
+}
+
+.admin-user:nth-child(1){
+  animation-delay:.72s;
+}
+
+.admin-user:nth-child(2){
+  animation-delay:.79s;
+}
+
+.admin-user:nth-child(3){
+  animation-delay:.86s;
+}
+
+.admin-user:nth-child(4){
+  animation-delay:.93s;
+}
+
+.admin-user:nth-child(5){
+  animation-delay:1s;
 }
 
 .admin-user:hover{
   background:#fff4f6;
+  transform:translateX(-3px);
 }
 
 :global(.dark) .admin-user:hover{
@@ -1174,14 +1396,35 @@ const CSS = `
   display:flex;
   align-items:center;
   justify-content:center;
-  background:linear-gradient(135deg,#8b1538,#d98799);
+  background:
+    linear-gradient(
+      135deg,
+      #8b1538,
+      #d98799
+    );
   color:#fff;
   font-size:.72rem;
   font-weight:900;
+  transition:
+    transform .35s cubic-bezier(.22,1,.36,1),
+    box-shadow .35s ease;
+}
+
+.admin-user:hover .admin-user-avatar{
+  transform:scale(1.08) rotate(4deg);
+  box-shadow:0 8px 20px rgba(139,21,56,.18);
 }
 
 .admin-user-avatar-image{
   object-fit:cover;
+  transition:
+    transform .35s cubic-bezier(.22,1,.36,1),
+    box-shadow .35s ease;
+}
+
+.admin-user:hover .admin-user-avatar-image{
+  transform:scale(1.06);
+  box-shadow:0 8px 20px rgba(139,21,56,.18);
 }
 
 .admin-user-info{
@@ -1215,6 +1458,13 @@ const CSS = `
   border-radius:30px;
   font-size:.62rem;
   font-weight:800;
+  transition:transform .25s ease;
+}
+
+.admin-user:hover .admin-role,
+.admin-user:hover .admin-active,
+.admin-user:hover .admin-blocked{
+  transform:scale(1.05);
 }
 
 .admin-role{
@@ -1255,13 +1505,49 @@ const CSS = `
   transition:
     transform .25s ease,
     background .25s ease,
-    color .25s ease;
+    color .25s ease,
+    box-shadow .25s ease;
+  position:relative;
+  overflow:hidden;
+}
+
+.admin-action::before{
+  content:"";
+  position:absolute;
+  width:0;
+  height:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.12);
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  transition:
+    width .45s ease,
+    height .45s ease;
+}
+
+.admin-action:hover::before{
+  width:260px;
+  height:260px;
+}
+
+.admin-action svg{
+  transition:
+    transform .35s cubic-bezier(.22,1,.36,1);
+}
+
+.admin-action:hover svg{
+  transform:
+    scale(1.15)
+    translateY(-2px);
 }
 
 .admin-action:hover{
-  transform:translateY(-3px);
+  transform:translateY(-4px);
   background:#8b1538;
   color:#fff;
+  box-shadow:
+    0 14px 28px rgba(139,21,56,.18);
 }
 
 :global(.dark) .admin-action{
@@ -1295,6 +1581,11 @@ const CSS = `
   align-items:center;
   justify-content:center;
   text-align:center;
+  animation:
+    adminScaleIn
+    .6s
+    cubic-bezier(.22,1,.36,1)
+    both;
 }
 
 .admin-loading h2{
@@ -1314,6 +1605,9 @@ const CSS = `
   border-top-color:#8b1538;
   border-radius:50%;
   animation:adminSpin .8s linear infinite;
+  box-shadow:
+    0 0 0 8px rgba(244,182,194,.12),
+    0 0 30px rgba(139,21,56,.16);
 }
 
 .admin-error-icon{
@@ -1338,10 +1632,214 @@ const CSS = `
   color:#fff;
   font-weight:800;
   cursor:pointer;
+  transition:
+    transform .25s ease,
+    background .25s ease,
+    box-shadow .25s ease;
 }
 
 .admin-retry:hover{
   background:#6e0f2c;
+  transform:translateY(-2px);
+  box-shadow:0 10px 25px rgba(139,21,56,.2);
+}
+
+/* Ambient background */
+
+.admin-page::before,
+.admin-page::after{
+  content:"";
+  position:fixed;
+  width:420px;
+  height:420px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:0;
+  filter:blur(80px);
+  opacity:.14;
+}
+
+.admin-page::before{
+  top:-180px;
+  right:-120px;
+  background:#f4b6c2;
+  animation:
+    adminAmbientOne
+    10s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+.admin-page::after{
+  bottom:-220px;
+  left:-140px;
+  background:#8b1538;
+  opacity:.07;
+  animation:
+    adminAmbientTwo
+    13s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+/* Animations */
+
+@keyframes adminFadeUp{
+  from{
+    opacity:0;
+    transform:translateY(22px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+@keyframes adminFadeDown{
+  from{
+    opacity:0;
+    transform:translateY(-22px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+@keyframes adminFadeRight{
+  from{
+    opacity:0;
+    transform:translateX(22px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateX(0);
+  }
+}
+
+@keyframes adminScaleIn{
+  from{
+    opacity:0;
+    transform:scale(.82);
+  }
+
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+@keyframes adminCardReveal{
+  from{
+    opacity:0;
+    transform:
+      translateY(28px)
+      scale(.97);
+  }
+
+  to{
+    opacity:1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes adminUserReveal{
+  from{
+    opacity:0;
+    transform:translateX(-18px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateX(0);
+  }
+}
+
+@keyframes adminBarGrow{
+  from{
+    transform:scaleY(0);
+  }
+
+  to{
+    transform:scaleY(1);
+  }
+}
+
+@keyframes adminDonutReveal{
+  from{
+    opacity:0;
+    transform:
+      scale(.65)
+      rotate(-80deg);
+  }
+
+  to{
+    opacity:1;
+    transform:
+      scale(1)
+      rotate(0);
+  }
+}
+
+@keyframes adminDonutFloat{
+  0%,
+  100%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-7px);
+  }
+}
+
+@keyframes adminAmbientOne{
+  from{
+    transform:
+      translate(0,0)
+      scale(1);
+  }
+
+  to{
+    transform:
+      translate(-45px,35px)
+      scale(1.12);
+  }
+}
+
+@keyframes adminAmbientTwo{
+  from{
+    transform:
+      translate(0,0)
+      scale(1);
+  }
+
+  to{
+    transform:
+      translate(55px,-30px)
+      scale(1.08);
+  }
+}
+
+@keyframes adminSparkle{
+  0%,
+  100%{
+    transform:
+      rotate(0)
+      scale(1);
+  }
+
+  50%{
+    transform:
+      rotate(12deg)
+      scale(1.18);
+  }
 }
 
 @keyframes adminSpin{
@@ -1350,7 +1848,23 @@ const CSS = `
   }
 }
 
+/* Reduced motion */
+
+@media (prefers-reduced-motion:reduce){
+  .admin-page *,
+  .admin-page *::before,
+  .admin-page *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+/* Responsive */
+
 @media(max-width:1200px){
+
   .admin-stats{
     grid-template-columns:repeat(2,1fr);
   }
@@ -1361,6 +1875,7 @@ const CSS = `
 }
 
 @media(max-width:700px){
+
   .admin-page{
     padding:17px 13px;
   }
@@ -1418,9 +1933,22 @@ const CSS = `
   .admin-user-email{
     max-width:130px;
   }
+
+  .admin-page::before,
+  .admin-page::after{
+    width:260px;
+    height:260px;
+    filter:blur(60px);
+  }
+
+  .admin-donut{
+    width:155px;
+    height:155px;
+  }
 }
 
 @media(max-width:420px){
+
   .admin-stats{
     grid-template-columns:1fr;
   }
@@ -1433,4 +1961,5 @@ const CSS = `
     grid-template-columns:1fr;
   }
 }
+
 `;

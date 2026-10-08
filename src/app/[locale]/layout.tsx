@@ -7,10 +7,11 @@ import {
   locales,
 } from "../../i18n/config";
 
-import ThemeProvider from "../../components/providers/ThemeProvider";
 
+import ThemeProvider from "@/src/components/providers/ThemeProvider";
+import AuthProvider from "@/src/components/providers/AuthProvider";
 import Navbar from "@/src/components/Navbar/Navbar";
-
+import Footer from "@/src/components/Footer/Footer";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "../globals.css";
@@ -36,18 +37,16 @@ export default async function LocaleLayout({
   }
 
   return (
-    <html
-      lang={locale}
-      dir={getDirection(locale)}
-      suppressHydrationWarning
-    >
-      <body>
-        <ThemeProvider>
 
-          <Navbar locale={locale}  />
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+  <ThemeProvider>
+    <AuthProvider>
+      <Navbar locale={locale} />
+
+      {children}
+
+      <Footer />
+    </AuthProvider>
+  </ThemeProvider>
+
   );
 }

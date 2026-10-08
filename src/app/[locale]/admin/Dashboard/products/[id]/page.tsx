@@ -8,7 +8,6 @@ import {
   Star, ShoppingBag, Trash2,
 } from "lucide-react";
 
-import DeleteModal from "../../../../../../components/DeleteModal/DeleteModal";
 import {
   ADMIN_CSS, API, CONCERNS, SKIN_TYPES, T, base, fmt, fmtDate, inter,
   playfair, stockState, useGlTheme, type Locale, type Product,
@@ -30,7 +29,6 @@ export default function ProductDetailsPage() {
   const [error, setError] = useState("");
   const [img, setImg] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -76,20 +74,40 @@ export default function ProductDetailsPage() {
     }
   }
 
-  async function remove() {
-    if (!product) return;
-    try {
-      setBusy(true);
-      const res = await fetch(`${API}/${product.id}`, { method: "DELETE", credentials: "include" });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.message || t.failed);
-      router.push(B);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : t.failed);
-      setBusy(false);
-    }
-  }
+async function remove() {
+  if (!product) return;
 
+  try {
+    console.log("🗑️ START DELETE:", product.id);
+
+    setBusy(true);
+
+    const res = await fetch(`${API}/${product.id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    console.log("📡 DELETE STATUS:", res.status);
+
+    const data = await res.json();
+
+    console.log("📦 DELETE RESULT:", data);
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || t.failed);
+    }
+
+    console.log("✅ DELETE SUCCESS:", product.id);
+
+    router.push(B);
+  } catch (err) {
+    console.error("❌ DELETE ERROR:", err);
+
+    alert(err instanceof Error ? err.message : t.failed);
+  } finally {
+    setBusy(false);
+  }
+}
   const Back = isRTL ? ArrowRight : ArrowLeft;
   const label = <V extends string>(list: { value: V; ar: string; en: string }[], v: V) => {
     const item = list.find((x) => x.value === v);
@@ -144,9 +162,16 @@ export default function ProductDetailsPage() {
                     {p.isActive ? <PowerOff size={16} /> : <Power size={16} />}
                     {p.isActive ? t.deactivate : t.activate}
                   </button>
-                  <button type="button" className="btn ghost" style={{ color: "var(--bad)" }} onClick={() => setShowDelete(true)} disabled={busy}>
-                    <Trash2 size={16} />{t.delete}
-                  </button>
+     <button
+  type="button"
+  className="btn ghost"
+  style={{ color: "var(--bad)" }}
+  onClick={remove}
+  disabled={busy}
+>
+  <Trash2 size={16} />
+  {busy ? "Deleting..." : t.delete}
+</button>
                 </div>
               </header>
 
@@ -249,9 +274,6 @@ export default function ProductDetailsPage() {
           )}
         </div>
 
-        {showDelete && p && (
-          <DeleteModal t={t} product={p} busy={busy} onCancel={() => setShowDelete(false)} onConfirm={remove} />
-        )}
       </main>
     </>
   );

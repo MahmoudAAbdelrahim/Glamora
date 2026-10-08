@@ -1,16 +1,27 @@
 "use client";
 
 import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+  Activity,
+  ArrowLeft,
+  ArrowRight,
+  Ban,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  CircleUserRound,
+  Lock,
+  Search,
+  ShieldCheck,
+  Trash2,
+  UserCheck,
+  Users,
+  UserCog,
+  UserRound,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-
 type Locale = "ar" | "en";
-
 type UserRole = "user" | "admin";
 
 type User = {
@@ -46,13 +57,16 @@ const translations = {
   ar: {
     title: "إدارة المستخدمين",
     subtitle: "إدارة جميع مستخدمي منصة Glamora",
+
     total: "إجمالي المستخدمين",
     users: "المستخدمين",
     admins: "المديرين",
     active: "النشطين",
     blocked: "المحظورين",
 
-    search: "بحث بالاسم أو البريد أو الهاتف...",
+    search: "ابحث بالاسم أو البريد أو الهاتف...",
+    searchButton: "بحث",
+
     allRoles: "كل الأدوار",
     user: "مستخدم",
     admin: "مدير",
@@ -79,6 +93,7 @@ const translations = {
     delete: "حذف",
 
     noUsers: "لا يوجد مستخدمون",
+    noUsersDescription: "لم يتم العثور على أي مستخدمين مطابقين للبحث الحالي.",
     loading: "جاري تحميل المستخدمين...",
     error: "حدث خطأ أثناء تحميل المستخدمين",
     retry: "إعادة المحاولة",
@@ -86,6 +101,7 @@ const translations = {
     previous: "السابق",
     next: "التالي",
     page: "صفحة",
+    of: "من",
 
     confirmDelete:
       "هل أنت متأكد من حذف هذا المستخدم؟ سيتم إخفاؤه من النظام.",
@@ -94,14 +110,14 @@ const translations = {
     confirmAdmin: "هل تريد تحويل هذا المستخدم إلى مدير؟",
     confirmUser: "هل تريد تحويل هذا المدير إلى مستخدم؟",
 
-    updateSuccess: "تم تحديث المستخدم بنجاح",
-    deleteSuccess: "تم حذف المستخدم بنجاح",
-    operationFailed: "فشلت العملية",
+    dashboard: "لوحة التحكم",
+    usersManagement: "المستخدمون",
   },
 
   en: {
     title: "Users Management",
     subtitle: "Manage all Glamora platform users",
+
     total: "Total Users",
     users: "Users",
     admins: "Admins",
@@ -109,6 +125,8 @@ const translations = {
     blocked: "Blocked",
 
     search: "Search by name, email or phone...",
+    searchButton: "Search",
+
     allRoles: "All roles",
     user: "User",
     admin: "Admin",
@@ -135,6 +153,7 @@ const translations = {
     delete: "Delete",
 
     noUsers: "No users found",
+    noUsersDescription: "No users match your current search or filters.",
     loading: "Loading users...",
     error: "Failed to load users",
     retry: "Retry",
@@ -142,6 +161,7 @@ const translations = {
     previous: "Previous",
     next: "Next",
     page: "Page",
+    of: "of",
 
     confirmDelete:
       "Are you sure you want to delete this user? The account will be hidden from the system.",
@@ -150,33 +170,71 @@ const translations = {
     confirmAdmin: "Do you want to make this user an admin?",
     confirmUser: "Do you want to change this admin to a user?",
 
-    updateSuccess: "User updated successfully",
-    deleteSuccess: "User deleted successfully",
-    operationFailed: "Operation failed",
+    dashboard: "Dashboard",
+    usersManagement: "Users",
   },
 };
 
 function formatDate(date: string, locale: Locale) {
-  return new Intl.DateTimeFormat(
-    locale === "ar" ? "ar-EG" : "en-US",
-    {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }
-  ).format(new Date(date));
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(date));
+}
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  type,
+  delay,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: number;
+  type: "total" | "users" | "admins" | "active" | "blocked";
+  delay: number;
+}) {
+  return (
+    <div
+      className={`gu-stat gu-stat-${type}`}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="gu-stat-glow" />
+
+      <div className="gu-stat-top">
+        <div className="gu-stat-icon">
+          <Icon size={21} strokeWidth={1.8} />
+        </div>
+
+        <span className="gu-stat-arrow">
+          <Activity size={16} />
+        </span>
+      </div>
+
+      <div className="gu-stat-value">
+        {value.toLocaleString()}
+      </div>
+
+      <div className="gu-stat-label">{label}</div>
+
+      <div className="gu-stat-line" />
+    </div>
+  );
 }
 
 export default function AdminUsersPage() {
   const params = useParams();
   const router = useRouter();
 
-  const locale: Locale =
-    params.locale === "en" ? "en" : "ar";
-
+  const locale: Locale = params.locale === "en" ? "en" : "ar";
   const t = translations[locale];
 
+  const isAr = locale === "ar";
+
   const [users, setUsers] = useState<User[]>([]);
+
   const [stats, setStats] = useState<Stats>({
     total: 0,
     admins: 0,
@@ -185,16 +243,16 @@ export default function AdminUsersPage() {
     active: 0,
   });
 
-  const [pagination, setPagination] =
-    useState<Pagination>({
-      page: 1,
-      limit: 10,
-      total: 0,
-      totalPages: 1,
-    });
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
 
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
 
@@ -237,9 +295,7 @@ export default function AdminUsersPage() {
         const result = await response.json();
 
         if (!response.ok || !result.success) {
-          throw new Error(
-            result.message || t.error
-          );
+          throw new Error(result.message || t.error);
         }
 
         setUsers(result.data.users);
@@ -322,7 +378,7 @@ export default function AdminUsersPage() {
 
         if (!response.ok || !result.success) {
           throw new Error(
-            result.message || t.operationFailed
+            result.message || "Operation failed"
           );
         }
 
@@ -368,7 +424,7 @@ export default function AdminUsersPage() {
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.message || t.operationFailed
+          result.message || "Operation failed"
         );
       }
 
@@ -379,7 +435,7 @@ export default function AdminUsersPage() {
       window.alert(
         err instanceof Error
           ? err.message
-          : t.operationFailed
+          : "Operation failed"
       );
     } finally {
       setActionLoading(null);
@@ -423,76 +479,95 @@ export default function AdminUsersPage() {
   return (
     <main
       className="gl-users-page"
-      dir={locale === "ar" ? "rtl" : "ltr"}
+      dir={isAr ? "rtl" : "ltr"}
     >
-
       <section className="gl-users-shell">
-        <div className="gl-users-head">
-          <div>
+
+        {/* HEADER */}
+        <header className="gu-header">
+          <div className="gu-header-content">
             <button
               type="button"
-              className="gl-back"
+              className="gu-back"
               onClick={() =>
-                router.push(
-                  `/${locale}/admin/dashboard`
-                )
+                router.push(`/${locale}/admin/dashboard`)
               }
             >
-              <i
-                className={
-                  locale === "ar"
-                    ? "bi bi-arrow-right"
-                    : "bi bi-arrow-left"
-                }
-              />
-              <span>
-                {locale === "ar"
-                  ? "لوحة التحكم"
-                  : "Dashboard"}
-              </span>
+              {isAr ? (
+                <ArrowRight size={18} />
+              ) : (
+                <ArrowLeft size={18} />
+              )}
+
+              <span>{t.dashboard}</span>
             </button>
 
-            <h1>{t.title}</h1>
+            <div className="gu-title-row">
+              <div className="gu-title-icon">
+                <Users size={27} />
+              </div>
 
-            <p>{t.subtitle}</p>
+              <div>
+                <h1>{t.title}</h1>
+                <p>{t.subtitle}</p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="gl-stats">
+          <div className="gu-header-badge">
+            <CircleUserRound size={18} />
+            <span>{stats.total.toLocaleString()}</span>
+            <small>{t.usersManagement}</small>
+          </div>
+        </header>
+
+        {/* STATS */}
+        <section className="gu-stats">
           <StatCard
-            icon="bi-people"
+            icon={Users}
             label={t.total}
             value={stats.total}
+            type="total"
+            delay={80}
           />
 
           <StatCard
-            icon="bi-person-check"
+            icon={UserCheck}
             label={t.users}
             value={stats.users}
+            type="users"
+            delay={150}
           />
 
           <StatCard
-            icon="bi-shield-check"
+            icon={ShieldCheck}
             label={t.admins}
             value={stats.admins}
+            type="admins"
+            delay={220}
           />
 
           <StatCard
-            icon="bi-person-check-fill"
+            icon={CheckCircle2}
             label={t.active}
             value={stats.active}
+            type="active"
+            delay={290}
           />
 
           <StatCard
-            icon="bi-person-lock"
+            icon={Ban}
             label={t.blocked}
             value={stats.blocked}
+            type="blocked"
+            delay={360}
           />
-        </div>
+        </section>
 
-        <section className="gl-filters">
-          <div className="gl-search">
-            <i className="bi bi-search" />
+        {/* FILTERS */}
+        <section className="gu-toolbar">
+          <div className="gu-search">
+            <Search size={19} />
 
             <input
               value={searchInput}
@@ -507,60 +582,75 @@ export default function AdminUsersPage() {
               placeholder={t.search}
             />
 
+            {searchInput && (
+              <button
+                type="button"
+                className="gu-clear"
+                onClick={() => {
+                  setSearchInput("");
+                  setSearch("");
+                }}
+              >
+                ×
+              </button>
+            )}
+
             <button
               type="button"
+              className="gu-search-button"
               onClick={handleSearch}
             >
-              {locale === "ar"
-                ? "بحث"
-                : "Search"}
+              <Search size={16} />
+              {t.searchButton}
             </button>
           </div>
 
-          <select
-            value={role}
-            onChange={(event) => {
-              setRole(event.target.value);
-            }}
-          >
-            <option value="all">
-              {t.allRoles}
-            </option>
+          <div className="gu-select-wrap">
+            <UserCog size={17} />
 
-            <option value="user">
-              {t.user}
-            </option>
+            <select
+              value={role}
+              onChange={(event) =>
+                setRole(event.target.value)
+              }
+            >
+              <option value="all">{t.allRoles}</option>
+              <option value="user">{t.user}</option>
+              <option value="admin">{t.admin}</option>
+            </select>
+          </div>
 
-            <option value="admin">
-              {t.admin}
-            </option>
-          </select>
+          <div className="gu-select-wrap">
+            <Activity size={17} />
 
-          <select
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value);
-            }}
-          >
-            <option value="all">
-              {t.allStatus}
-            </option>
-
-            <option value="active">
-              {t.activeStatus}
-            </option>
-
-            <option value="blocked">
-              {t.blockedStatus}
-            </option>
-          </select>
+            <select
+              value={status}
+              onChange={(event) =>
+                setStatus(event.target.value)
+              }
+            >
+              <option value="all">{t.allStatus}</option>
+              <option value="active">
+                {t.activeStatus}
+              </option>
+              <option value="blocked">
+                {t.blockedStatus}
+              </option>
+            </select>
+          </div>
         </section>
 
+        {/* ERROR */}
         {error ? (
-          <section className="gl-error">
-            <i className="bi bi-exclamation-triangle" />
+          <section className="gu-error">
+            <div className="gu-error-icon">
+              <Ban size={22} />
+            </div>
 
-            <span>{error}</span>
+            <div>
+              <strong>{t.error}</strong>
+              <span>{error}</span>
+            </div>
 
             <button
               type="button"
@@ -572,20 +662,45 @@ export default function AdminUsersPage() {
             </button>
           </section>
         ) : (
-          <section className="gl-table-card">
+          <section className="gu-table-card">
+
+            {/* TABLE HEADER */}
+            <div className="gu-table-head">
+              <div>
+                <h2>{t.usersManagement}</h2>
+                <p>
+                  {pagination.total.toLocaleString()}{" "}
+                  {t.users}
+                </p>
+              </div>
+
+              <div className="gu-live">
+                <span />
+                {isAr ? "البيانات محدثة" : "Live data"}
+              </div>
+            </div>
+
             {loading ? (
-              <div className="gl-loading">
-                <div className="gl-spinner" />
-                <span>{t.loading}</span>
+              <div className="gu-loading">
+                <div className="gu-spinner" />
+
+                <strong>{t.loading}</strong>
+
+                <div className="gu-loading-line" />
+                <div className="gu-loading-line short" />
               </div>
             ) : users.length === 0 ? (
-              <div className="gl-empty">
-                <i className="bi bi-people" />
+              <div className="gu-empty">
+                <div className="gu-empty-icon">
+                  <Users size={34} />
+                </div>
+
                 <h3>{t.noUsers}</h3>
+                <p>{t.noUsersDescription}</p>
               </div>
             ) : (
               <>
-                <div className="gl-table-wrap">
+                <div className="gu-table-wrap">
                   <table>
                     <thead>
                       <tr>
@@ -600,11 +715,17 @@ export default function AdminUsersPage() {
                     </thead>
 
                     <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id}>
-                          <td>
-                            <div className="gl-user-cell">
-                              <div className="gl-avatar">
+                      {users.map((user, index) => (
+                        <tr
+                          key={user.id}
+                          style={{
+                            animationDelay: `${index * 55}ms`,
+                          }}
+                        >
+                          {/* USER */}
+                          <td data-label={t.name}>
+                            <div className="gu-user">
+                              <div className="gu-avatar">
                                 {user.profileImage?.url ? (
                                   <img
                                     src={
@@ -613,68 +734,95 @@ export default function AdminUsersPage() {
                                     alt={user.fullName}
                                   />
                                 ) : (
-                                  <i className="bi bi-person" />
+                                  <UserRound
+                                    size={19}
+                                  />
                                 )}
+
+                                <span className="gu-avatar-ring" />
                               </div>
 
-                              <strong>
-                                {user.fullName}
-                              </strong>
+                              <div className="gu-user-info">
+                                <strong>
+                                  {user.fullName}
+                                </strong>
+
+                                <small>
+                                  #{user.id.slice(-6)}
+                                </small>
+                              </div>
                             </div>
                           </td>
 
-                          <td>
-                            <span className="gl-email">
+                          {/* EMAIL */}
+                          <td data-label={t.email}>
+                            <span className="gu-email">
                               {user.email}
                             </span>
                           </td>
 
-                          <td>
-                            {user.phone || "—"}
+                          {/* PHONE */}
+                          <td data-label={t.phone}>
+                            <span className="gu-phone">
+                              {user.phone || "—"}
+                            </span>
                           </td>
 
-                          <td>
+                          {/* ROLE */}
+                          <td data-label={t.role}>
                             <span
-                              className={`gl-role ${
+                              className={`gu-role ${
                                 user.role === "admin"
                                   ? "admin"
                                   : "user"
                               }`}
                             >
+                              {user.role === "admin" ? (
+                                <ShieldCheck size={14} />
+                              ) : (
+                                <UserRound size={14} />
+                              )}
+
                               {user.role === "admin"
                                 ? t.admin
                                 : t.user}
                             </span>
                           </td>
 
-                          <td>
+                          {/* STATUS */}
+                          <td data-label={t.status}>
                             <span
-                              className={`gl-status ${
+                              className={`gu-status ${
                                 user.isBlocked
                                   ? "blocked"
                                   : "active"
                               }`}
                             >
-                              <span />
+                              <span className="gu-status-dot" />
+
                               {user.isBlocked
                                 ? t.blockedUser
                                 : t.activeUser}
                             </span>
                           </td>
 
-                          <td>
-                            {formatDate(
-                              user.createdAt,
-                              locale
-                            )}
+                          {/* DATE */}
+                          <td data-label={t.createdAt}>
+                            <span className="gu-date">
+                              {formatDate(
+                                user.createdAt,
+                                locale
+                              )}
+                            </span>
                           </td>
 
-                          <td>
-                            <div className="gl-actions">
+                          {/* ACTIONS */}
+                          <td data-label={t.actions}>
+                            <div className="gu-actions">
                               {user.isBlocked ? (
                                 <button
                                   type="button"
-                                  className="success"
+                                  className="gu-action success"
                                   title={t.unblock}
                                   disabled={
                                     actionLoading !== null
@@ -686,12 +834,12 @@ export default function AdminUsersPage() {
                                     )
                                   }
                                 >
-                                  <i className="bi bi-unlock" />
+                                  <CheckCircle2 size={16} />
                                 </button>
                               ) : (
                                 <button
                                   type="button"
-                                  className="warning"
+                                  className="gu-action warning"
                                   title={t.block}
                                   disabled={
                                     actionLoading !== null
@@ -703,14 +851,14 @@ export default function AdminUsersPage() {
                                     )
                                   }
                                 >
-                                  <i className="bi bi-lock" />
+                                  <Lock size={16} />
                                 </button>
                               )}
 
                               {user.role === "admin" ? (
                                 <button
                                   type="button"
-                                  className="neutral"
+                                  className="gu-action neutral"
                                   title={t.makeUser}
                                   disabled={
                                     actionLoading !== null
@@ -722,12 +870,12 @@ export default function AdminUsersPage() {
                                     )
                                   }
                                 >
-                                  <i className="bi bi-person" />
+                                  <UserRound size={16} />
                                 </button>
                               ) : (
                                 <button
                                   type="button"
-                                  className="primary"
+                                  className="gu-action primary"
                                   title={t.makeAdmin}
                                   disabled={
                                     actionLoading !== null
@@ -739,13 +887,13 @@ export default function AdminUsersPage() {
                                     )
                                   }
                                 >
-                                  <i className="bi bi-shield-check" />
+                                  <ShieldCheck size={16} />
                                 </button>
                               )}
 
                               <button
                                 type="button"
-                                className="danger"
+                                className="gu-action danger"
                                 title={t.delete}
                                 disabled={
                                   actionLoading !== null
@@ -757,7 +905,7 @@ export default function AdminUsersPage() {
                                   )
                                 }
                               >
-                                <i className="bi bi-trash3" />
+                                <Trash2 size={16} />
                               </button>
                             </div>
                           </td>
@@ -767,12 +915,12 @@ export default function AdminUsersPage() {
                   </table>
                 </div>
 
-                <div className="gl-pagination">
+                {/* PAGINATION */}
+                <div className="gu-pagination">
                   <button
                     type="button"
                     disabled={
-                      pagination.page <= 1 ||
-                      loading
+                      pagination.page <= 1 || loading
                     }
                     onClick={() =>
                       fetchUsers(
@@ -780,17 +928,16 @@ export default function AdminUsersPage() {
                       )
                     }
                   >
-                    <i
-                      className={
-                        locale === "ar"
-                          ? "bi bi-chevron-right"
-                          : "bi bi-chevron-left"
-                      }
-                    />
-                    {t.previous}
+                    {isAr ? (
+                      <ChevronRight size={17} />
+                    ) : (
+                      <ChevronLeft size={17} />
+                    )}
+
+                    <span>{t.previous}</span>
                   </button>
 
-                  <div className="gl-pages">
+                  <div className="gu-pages">
                     {paginationNumbers.map((page) => (
                       <button
                         type="button"
@@ -822,22 +969,18 @@ export default function AdminUsersPage() {
                       )
                     }
                   >
-                    {t.next}
-                    <i
-                      className={
-                        locale === "ar"
-                          ? "bi bi-chevron-left"
-                          : "bi bi-chevron-right"
-                      }
-                    />
+                    <span>{t.next}</span>
+
+                    {isAr ? (
+                      <ChevronLeft size={17} />
+                    ) : (
+                      <ChevronRight size={17} />
+                    )}
                   </button>
                 </div>
 
-                <div className="gl-page-info">
-                  {t.page} {pagination.page}{" "}
-                  {locale === "ar"
-                    ? "من"
-                    : "of"}{" "}
+                <div className="gu-page-info">
+                  {t.page} {pagination.page} {t.of}{" "}
                   {pagination.totalPages}
                 </div>
               </>
@@ -846,161 +989,574 @@ export default function AdminUsersPage() {
         )}
       </section>
 
-      <style jsx>{`
+      <style>{`
         .gl-users-page {
+          --wine: #8b1538;
+          --wine-deep: #6e0f2c;
+          --wine-soft: #fbe4e8;
+          --pink: #f4b6c2;
+          --rose: #d6506f;
+
+          --bg: #faf7f8;
+          --card: rgba(255,255,255,.94);
+          --line: #f0dfe3;
+          --text: #2a1a1f;
+          --muted: #7a6a6f;
+
+          position: relative;
           min-height: 100vh;
-          background: #faf7f8;
-          color: #2a1a1f;
+          overflow: hidden;
+          background:
+            radial-gradient(
+              circle at 7% 5%,
+              rgba(244,182,194,.24),
+              transparent 27%
+            ),
+            radial-gradient(
+              circle at 95% 20%,
+              rgba(139,21,56,.09),
+              transparent 25%
+            ),
+            var(--bg);
+          color: var(--text);
+          font-family: Inter, Arial, sans-serif;
+        }
+
+        .gl-users-page::before,
+        .gl-users-page::after {
+          content: "";
+          position: absolute;
+          width: 360px;
+          height: 360px;
+          border-radius: 50%;
+          pointer-events: none;
+          filter: blur(10px);
+          opacity: .45;
+          animation: guFloat 11s ease-in-out infinite;
+        }
+
+        .gl-users-page::before {
+          left: -210px;
+          top: 18%;
+          background: radial-gradient(
+            circle,
+            rgba(244,182,194,.28),
+            transparent 68%
+          );
+        }
+
+        .gl-users-page::after {
+          right: -220px;
+          bottom: 5%;
+          background: radial-gradient(
+            circle,
+            rgba(139,21,56,.10),
+            transparent 68%
+          );
+          animation-delay: -4s;
         }
 
         .gl-users-shell {
+          position: relative;
+          z-index: 1;
           width: min(1500px, 94%);
           margin: 0 auto;
-          padding: 42px 0 70px;
+          padding: 38px 0 70px;
         }
 
-        .gl-users-head {
+        /* HEADER */
+
+        .gu-header {
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
-          margin-bottom: 30px;
+          gap: 30px;
+          margin-bottom: 28px;
+          animation: guHeader .75s cubic-bezier(.22,1,.36,1) both;
         }
 
-        .gl-users-head h1 {
-          margin: 14px 0 6px;
-          font-family: Georgia, serif;
-          font-size: clamp(2rem, 3vw, 3rem);
-          font-weight: 700;
-          color: #6e0f2c;
+        .gu-header-content {
+          min-width: 0;
         }
 
-        .gl-users-head p {
-          margin: 0;
-          color: #7a6a6f;
-          font-size: 0.95rem;
-        }
-
-        .gl-back {
+        .gu-back {
           display: inline-flex;
           align-items: center;
           gap: 8px;
+          padding: 0;
+          margin-bottom: 16px;
           border: 0;
           background: transparent;
-          padding: 0;
-          color: #8b1538;
-          font-weight: 700;
+          color: var(--wine);
+          font-weight: 800;
           cursor: pointer;
+          transition: .3s ease;
         }
 
-        .gl-stats {
-          display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          gap: 16px;
-          margin-bottom: 22px;
+        .gu-back:hover {
+          gap: 13px;
+          color: var(--wine-deep);
+          transform: translateX(
+            ${isAr ? "3px" : "-3px"}
+          );
         }
 
-        .gl-stat {
-          min-height: 125px;
-          padding: 22px;
-          border: 1px solid #f0dfe3;
-          border-radius: 18px;
-          background: #fff;
-          box-shadow: 0 10px 35px rgba(110, 15, 44, 0.05);
-        }
-
-        .gl-stat-top {
+        .gu-title-row {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 10px;
+          gap: 15px;
         }
 
-        .gl-stat-icon {
-          width: 42px;
-          height: 42px;
+        .gu-title-icon {
+          width: 58px;
+          height: 58px;
+          flex: 0 0 58px;
           display: grid;
           place-items: center;
-          border-radius: 12px;
-          background: #fbe4e8;
-          color: #8b1538;
-          font-size: 1.2rem;
+          border-radius: 17px;
+          color: white;
+          background:
+            linear-gradient(
+              145deg,
+              #a82c50,
+              var(--wine-deep)
+            );
+          box-shadow:
+            0 12px 28px rgba(139,21,56,.20);
+          animation: guIcon .8s .15s both;
         }
 
-        .gl-stat strong {
-          display: block;
-          margin-top: 16px;
-          font-size: 1.7rem;
-          color: #2a1a1f;
+        .gu-title-row h1 {
+          margin: 0;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: clamp(2rem, 3vw, 3rem);
+          line-height: 1.1;
+          letter-spacing: -.035em;
+          color: var(--wine-deep);
         }
 
-        .gl-stat span {
-          color: #7a6a6f;
-          font-size: 0.82rem;
+        .gu-title-row p {
+          margin: 7px 0 0;
+          color: var(--muted);
+          font-size: .92rem;
         }
 
-        .gl-filters {
+        .gu-header-badge {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          min-width: 150px;
+          padding: 13px 16px;
+          border: 1px solid var(--line);
+          border-radius: 15px;
+          background: rgba(255,255,255,.75);
+          box-shadow: 0 8px 25px rgba(139,21,56,.05);
+          backdrop-filter: blur(12px);
+          color: var(--wine);
+        }
+
+        .gu-header-badge span {
+          font-size: 1.1rem;
+          font-weight: 900;
+        }
+
+        .gu-header-badge small {
+          color: var(--muted);
+          font-weight: 700;
+        }
+
+        /* STATS */
+
+        .gu-stats {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 15px;
+          margin-bottom: 20px;
+          perspective: 1000px;
+        }
+
+        .gu-stat {
+          position: relative;
+          min-height: 142px;
+          overflow: hidden;
+          padding: 20px;
+          border: 1px solid var(--line);
+          border-radius: 19px;
+          background: var(--card);
+          box-shadow:
+            0 8px 28px rgba(110,15,44,.055);
+          opacity: 0;
+          transform:
+            translateY(25px)
+            scale(.96);
+          animation:
+            guStatIn .7s
+            cubic-bezier(.22,1,.36,1)
+            forwards;
+          transition:
+            transform .4s cubic-bezier(.22,1,.36,1),
+            box-shadow .4s ease,
+            border-color .4s ease;
+        }
+
+        .gu-stat::after {
+          content: "";
+          position: absolute;
+          inset: auto 17px 0;
+          height: 2px;
+          border-radius: 99px;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            var(--stat-accent),
+            transparent
+          );
+          transform: scaleX(.25);
+          opacity: 0;
+          transition: .4s ease;
+        }
+
+        .gu-stat:hover {
+          transform:
+            translateY(-7px)
+            rotateX(2deg);
+          border-color: rgba(217,135,153,.5);
+          box-shadow:
+            0 20px 45px rgba(110,15,44,.12);
+        }
+
+        .gu-stat:hover::after {
+          transform: scaleX(1);
+          opacity: 1;
+        }
+
+        .gu-stat-glow {
+          position: absolute;
+          width: 150px;
+          height: 150px;
+          top: -90px;
+          right: -65px;
+          border-radius: 50%;
+          background: var(--stat-glow);
+          filter: blur(4px);
+          transition: .5s ease;
+        }
+
+        .gu-stat:hover .gu-stat-glow {
+          transform: scale(1.4);
+        }
+
+        .gu-stat-total {
+          --stat-accent: #8b1538;
+          --stat-glow: rgba(139,21,56,.13);
+        }
+
+        .gu-stat-users {
+          --stat-accent: #d6506f;
+          --stat-glow: rgba(214,80,111,.13);
+        }
+
+        .gu-stat-admins {
+          --stat-accent: #60479a;
+          --stat-glow: rgba(96,71,154,.12);
+        }
+
+        .gu-stat-active {
+          --stat-accent: #16824d;
+          --stat-glow: rgba(22,130,77,.12);
+        }
+
+        .gu-stat-blocked {
+          --stat-accent: #c03b4e;
+          --stat-glow: rgba(192,59,78,.12);
+        }
+
+        .gu-stat-top {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .gu-stat-icon {
+          width: 43px;
+          height: 43px;
+          display: grid;
+          place-items: center;
+          border-radius: 13px;
+          background: var(--wine-soft);
+          color: var(--stat-accent);
+          transition: .4s cubic-bezier(.22,1,.36,1);
+        }
+
+        .gu-stat:hover .gu-stat-icon {
+          transform: rotate(-7deg) scale(1.12);
+          box-shadow:
+            0 8px 22px rgba(139,21,56,.13);
+        }
+
+        .gu-stat-arrow {
+          width: 31px;
+          height: 31px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          color: var(--stat-accent);
+          background: rgba(139,21,56,.055);
+          transition: .35s ease;
+        }
+
+        .gu-stat:hover .gu-stat-arrow {
+          transform: translateY(-3px);
+        }
+
+        .gu-stat-value {
+          position: relative;
+          z-index: 1;
+          margin-top: 17px;
+          font-size: 1.75rem;
+          font-weight: 900;
+          letter-spacing: -.035em;
+          color: var(--text);
+          transition: .35s ease;
+        }
+
+        .gu-stat:hover .gu-stat-value {
+          color: var(--stat-accent);
+          transform: translateX(
+            ${isAr ? "-2px" : "2px"}
+          );
+        }
+
+        .gu-stat-label {
+          position: relative;
+          z-index: 1;
+          margin-top: 3px;
+          color: var(--muted);
+          font-size: .79rem;
+          font-weight: 800;
+        }
+
+        .gu-stat-line {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 34%;
+          height: 3px;
+          background: var(--stat-accent);
+          border-radius: 0 99px 99px 0;
+          opacity: .7;
+        }
+
+        /* TOOLBAR */
+
+        .gu-toolbar {
           display: grid;
           grid-template-columns: minmax(300px, 1fr) 190px 190px;
           gap: 12px;
-          margin-bottom: 18px;
+          margin-bottom: 17px;
+          animation: guFadeUp .7s .38s both;
         }
 
-        .gl-search {
-          height: 48px;
+        .gu-search,
+        .gu-select-wrap {
+          height: 51px;
+          border: 1px solid var(--line);
+          border-radius: 13px;
+          background: rgba(255,255,255,.93);
+          box-shadow:
+            0 7px 23px rgba(110,15,44,.035);
+        }
+
+        .gu-search {
           display: flex;
           align-items: center;
           overflow: hidden;
-          border: 1px solid #f0dfe3;
-          border-radius: 12px;
-          background: #fff;
+          transition: .3s ease;
         }
 
-        .gl-search > i {
+        .gu-search:focus-within {
+          transform: translateY(-2px);
+          border-color: #d98799;
+          box-shadow:
+            0 12px 28px rgba(139,21,56,.09),
+            0 0 0 4px rgba(244,182,194,.13);
+        }
+
+        .gu-search > svg {
+          flex: 0 0 auto;
           margin-inline: 15px 8px;
-          color: #8b1538;
+          color: var(--wine);
+          transition: .3s ease;
         }
 
-        .gl-search input {
+        .gu-search:focus-within > svg {
+          transform: scale(1.12) rotate(-7deg);
+        }
+
+        .gu-search input {
           flex: 1;
           min-width: 0;
           height: 100%;
           border: 0;
           outline: 0;
           background: transparent;
-          color: #2a1a1f;
+          color: var(--text);
+          font: inherit;
         }
 
-        .gl-search button {
+        .gu-search input::placeholder {
+          color: #a99ca1;
+        }
+
+        .gu-clear {
+          width: 30px;
+          height: 30px;
+          border: 0;
+          background: transparent;
+          color: var(--muted);
+          font-size: 1.35rem;
+          cursor: pointer;
+        }
+
+        .gu-search-button {
+          height: 100%;
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 0 19px;
+          border: 0;
+          background:
+            linear-gradient(
+              180deg,
+              #8f1739,
+              #6d0f2b
+            );
+          color: white;
+          font-weight: 800;
+          cursor: pointer;
+          transition: .3s ease;
+        }
+
+        .gu-search-button:hover {
+          filter: brightness(.92);
+          padding-inline: 22px;
+        }
+
+        .gu-select-wrap {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          padding-inline: 13px;
+          transition: .3s ease;
+        }
+
+        .gu-select-wrap > svg {
+          flex: 0 0 auto;
+          color: var(--wine);
+        }
+
+        .gu-select-wrap:hover {
+          transform: translateY(-2px);
+          border-color: #d98799;
+          box-shadow:
+            0 10px 25px rgba(110,15,44,.07);
+        }
+
+        .gu-select-wrap select {
+          width: 100%;
           height: 100%;
           border: 0;
-          padding: 0 20px;
-          background: #8b1538;
-          color: #fff;
+          outline: 0;
+          background: transparent;
+          color: var(--text);
+          font: inherit;
+          font-size: .84rem;
           font-weight: 700;
           cursor: pointer;
         }
 
-        .gl-filters select {
-          height: 48px;
-          padding: 0 14px;
-          border: 1px solid #f0dfe3;
-          border-radius: 12px;
-          outline: 0;
-          background: #fff;
-          color: #2a1a1f;
-          cursor: pointer;
-        }
+        /* TABLE CARD */
 
-        .gl-table-card {
+        .gu-table-card {
+          position: relative;
           overflow: hidden;
-          border: 1px solid #f0dfe3;
-          border-radius: 20px;
-          background: #fff;
-          box-shadow: 0 15px 45px rgba(110, 15, 44, 0.06);
+          border: 1px solid var(--line);
+          border-radius: 21px;
+          background: rgba(255,255,255,.96);
+          box-shadow:
+            0 15px 50px rgba(110,15,44,.065);
+          animation: guTableIn .8s .46s both;
         }
 
-        .gl-table-wrap {
+        .gu-table-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background:
+            linear-gradient(
+              115deg,
+              rgba(255,255,255,.5),
+              transparent 23%,
+              transparent 77%,
+              rgba(244,182,194,.07)
+            );
+        }
+
+        .gu-table-head {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 21px 22px;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .gu-table-head h2 {
+          margin: 0;
+          color: var(--text);
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 1.25rem;
+        }
+
+        .gu-table-head p {
+          margin: 4px 0 0;
+          color: var(--muted);
+          font-size: .76rem;
+          font-weight: 700;
+        }
+
+        .gu-live {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 7px 11px;
+          border-radius: 999px;
+          background: #e9f8ef;
+          color: #167342;
+          font-size: .72rem;
+          font-weight: 800;
+        }
+
+        .gu-live span {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: currentColor;
+          box-shadow: 0 0 0 4px rgba(22,115,66,.08);
+          animation: guPulse 1.7s ease-in-out infinite;
+        }
+
+        .gu-table-wrap {
+          position: relative;
+          z-index: 1;
           overflow-x: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #d98799 transparent;
         }
 
         table {
@@ -1011,422 +1567,820 @@ export default function AdminUsersPage() {
 
         th,
         td {
-          padding: 17px 18px;
+          padding: 16px 18px;
           text-align: start;
           border-bottom: 1px solid #f4e8eb;
           white-space: nowrap;
         }
 
         th {
+          position: relative;
           background: #fdf8f9;
-          color: #7a6a6f;
-          font-size: 0.78rem;
-          font-weight: 800;
+          color: #806f75;
+          font-size: .69rem;
+          font-weight: 900;
+          letter-spacing: .035em;
+        }
+
+        th::after {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          inset-inline: 0;
+          height: 1px;
+          background:
+            linear-gradient(
+              90deg,
+              transparent,
+              rgba(139,21,56,.18),
+              transparent
+            );
         }
 
         td {
           color: #4c3b40;
-          font-size: 0.88rem;
+          font-size: .84rem;
+        }
+
+        tbody tr {
+          opacity: 0;
+          transform: translateY(13px);
+          animation:
+            guRowIn .55s
+            cubic-bezier(.22,1,.36,1)
+            forwards;
+          transition:
+            background .25s ease,
+            transform .25s ease;
         }
 
         tbody tr:hover {
-          background: #fffafb;
+          background:
+            linear-gradient(
+              90deg,
+              rgba(244,182,194,.08),
+              rgba(255,255,255,.65),
+              rgba(244,182,194,.05)
+            );
+          transform: translateX(
+            ${isAr ? "-3px" : "3px"}
+          );
         }
 
-        .gl-user-cell {
+        tbody tr:last-child td {
+          border-bottom: 0;
+        }
+
+        /* USER */
+
+        .gu-user {
           display: flex;
           align-items: center;
           gap: 11px;
         }
 
-        .gl-user-cell strong {
-          color: #2a1a1f;
-        }
-
-        .gl-avatar {
-          width: 42px;
-          height: 42px;
-          flex: 0 0 42px;
-          overflow: hidden;
+        .gu-avatar {
+          position: relative;
+          width: 43px;
+          height: 43px;
+          flex: 0 0 43px;
           display: grid;
           place-items: center;
+          overflow: hidden;
           border-radius: 50%;
-          background: #fbe4e8;
-          color: #8b1538;
-          font-size: 1.1rem;
+          background: var(--wine-soft);
+          color: var(--wine);
+          box-shadow: 0 0 0 0 rgba(139,21,56,0);
+          transition: .35s cubic-bezier(.22,1,.36,1);
         }
 
-        .gl-avatar img {
+        .gu-avatar-ring {
+          position: absolute;
+          inset: -2px;
+          border: 1px solid rgba(139,21,56,.22);
+          border-radius: inherit;
+          transform: scale(.8);
+          opacity: 0;
+          transition: .35s ease;
+        }
+
+        tbody tr:hover .gu-avatar {
+          transform: scale(1.08) rotate(-3deg);
+          box-shadow:
+            0 8px 20px rgba(139,21,56,.14);
+        }
+
+        tbody tr:hover .gu-avatar-ring {
+          transform: scale(1.08);
+          opacity: 1;
+        }
+
+        .gu-avatar img {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          transition: .45s ease;
         }
 
-        .gl-email {
+        tbody tr:hover .gu-avatar img {
+          transform: scale(1.08);
+        }
+
+        .gu-user-info {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .gu-user-info strong {
+          color: var(--text);
+          font-size: .87rem;
+          transition: .25s ease;
+        }
+
+        tbody tr:hover .gu-user-info strong {
+          color: var(--wine);
+        }
+
+        .gu-user-info small {
+          color: #a4969b;
+          font-size: .63rem;
+        }
+
+        .gu-email {
           color: #6f6065;
+          transition: .25s ease;
         }
 
-        .gl-role,
-        .gl-status {
+        tbody tr:hover .gu-email {
+          color: var(--wine);
+        }
+
+        .gu-phone,
+        .gu-date {
+          color: #716368;
+        }
+
+        /* BADGES */
+
+        .gu-role,
+        .gu-status {
           display: inline-flex;
           align-items: center;
-          gap: 7px;
+          gap: 6px;
           padding: 6px 10px;
           border-radius: 999px;
-          font-size: 0.73rem;
-          font-weight: 800;
+          font-size: .7rem;
+          font-weight: 900;
+          transition: .25s ease;
         }
 
-        .gl-role.user {
-          background: #fbe4e8;
-          color: #8b1538;
+        .gu-role.user {
+          color: var(--wine);
+          background: var(--wine-soft);
         }
 
-        .gl-role.admin {
-          background: #eeeaf7;
+        .gu-role.admin {
           color: #49337a;
+          background: #eeeaf7;
         }
 
-        .gl-status.active {
-          background: #e9f8ef;
+        .gu-status.active {
           color: #167342;
+          background: #e9f8ef;
         }
 
-        .gl-status.blocked {
-          background: #fdeaea;
+        .gu-status.blocked {
           color: #b42318;
+          background: #fdeaea;
         }
 
-        .gl-status > span {
+        tbody tr:hover .gu-role,
+        tbody tr:hover .gu-status {
+          transform: translateY(-1px);
+          box-shadow:
+            0 5px 14px rgba(0,0,0,.06);
+        }
+
+        .gu-status-dot {
           width: 6px;
           height: 6px;
           border-radius: 50%;
           background: currentColor;
+          animation: guPulse 1.8s ease-in-out infinite;
         }
 
-        .gl-actions {
+        /* ACTIONS */
+
+        .gu-actions {
           display: flex;
           align-items: center;
           gap: 6px;
         }
 
-        .gl-actions button {
-          width: 34px;
-          height: 34px;
+        .gu-action {
+          position: relative;
+          width: 35px;
+          height: 35px;
           display: grid;
           place-items: center;
+          overflow: hidden;
           border: 0;
           border-radius: 9px;
           cursor: pointer;
-          transition: 0.2s ease;
+          transition:
+            transform .3s cubic-bezier(.22,1,.36,1),
+            box-shadow .3s ease,
+            filter .3s ease;
         }
 
-        .gl-actions button:hover {
-          transform: translateY(-1px);
+        .gu-action::before {
+          content: "";
+          position: absolute;
+          width: 0;
+          height: 0;
+          border-radius: 50%;
+          background: rgba(255,255,255,.5);
+          transform: translate(-50%,-50%);
+          transition: .45s ease;
         }
 
-        .gl-actions button:disabled {
-          opacity: 0.45;
+        .gu-action:hover::before {
+          width: 90px;
+          height: 90px;
+        }
+
+        .gu-action:hover {
+          transform: translateY(-3px) scale(1.07);
+          box-shadow:
+            0 8px 18px rgba(40,20,25,.1);
+          filter: saturate(1.08);
+        }
+
+        .gu-action:active {
+          transform: translateY(-1px) scale(.96);
+        }
+
+        .gu-action svg {
+          position: relative;
+          z-index: 1;
+        }
+
+        .gu-action:disabled {
+          opacity: .42;
           cursor: not-allowed;
           transform: none;
+          box-shadow: none;
         }
 
-        .gl-actions .warning {
+        .gu-action.warning {
           background: #fff3dc;
           color: #a76400;
         }
 
-        .gl-actions .success {
+        .gu-action.success {
           background: #e9f8ef;
           color: #167342;
         }
 
-        .gl-actions .primary {
-          background: #fbe4e8;
-          color: #8b1538;
+        .gu-action.primary {
+          background: var(--wine-soft);
+          color: var(--wine);
         }
 
-        .gl-actions .neutral {
+        .gu-action.neutral {
           background: #eeeaf7;
           color: #49337a;
         }
 
-        .gl-actions .danger {
+        .gu-action.danger {
           background: #fdeaea;
           color: #b42318;
         }
 
-        .gl-pagination {
+        /* PAGINATION */
+
+        .gu-pagination {
+          position: relative;
+          z-index: 1;
           display: flex;
-          align-items: center;
           justify-content: center;
+          align-items: center;
           gap: 16px;
-          padding: 20px;
+          padding: 20px 20px 9px;
         }
 
-        .gl-pagination > button {
+        .gu-pagination > button {
           display: inline-flex;
           align-items: center;
-          gap: 7px;
-          border: 1px solid #f0dfe3;
-          border-radius: 10px;
+          gap: 6px;
           padding: 9px 13px;
-          background: #fff;
-          color: #6e0f2c;
+          border: 1px solid var(--line);
+          border-radius: 10px;
+          background: white;
+          color: var(--wine);
+          font: inherit;
+          font-size: .75rem;
+          font-weight: 800;
           cursor: pointer;
+          transition: .3s ease;
         }
 
-        .gl-pagination > button:disabled {
-          opacity: 0.4;
+        .gu-pagination > button:hover:not(:disabled) {
+          transform: translateY(-2px);
+          border-color: #d98799;
+          box-shadow:
+            0 8px 20px rgba(110,15,44,.08);
+        }
+
+        .gu-pagination > button:disabled {
+          opacity: .4;
           cursor: not-allowed;
         }
 
-        .gl-pages {
+        .gu-pages {
           display: flex;
-          align-items: center;
           gap: 5px;
         }
 
-        .gl-pages button {
+        .gu-pages button {
           width: 36px;
           height: 36px;
           border: 0;
           border-radius: 9px;
           background: transparent;
-          color: #6e0f2c;
+          color: var(--wine);
+          font: inherit;
+          font-weight: 800;
           cursor: pointer;
+          transition: .3s ease;
         }
 
-        .gl-pages button.active {
-          background: #8b1538;
-          color: #fff;
+        .gu-pages button:hover {
+          transform: translateY(-3px);
+          background: var(--wine-soft);
         }
 
-        .gl-page-info {
-          padding: 0 20px 18px;
+        .gu-pages button.active {
+          background:
+            linear-gradient(
+              145deg,
+              #8f1739,
+              #6d0f2b
+            );
+          color: white;
+          box-shadow:
+            0 8px 20px rgba(139,21,56,.20);
+        }
+
+        .gu-page-info {
+          position: relative;
+          z-index: 1;
+          padding-bottom: 17px;
           text-align: center;
-          color: #7a6a6f;
-          font-size: 0.78rem;
+          color: #95878c;
+          font-size: .68rem;
+          font-weight: 700;
         }
 
-        .gl-loading,
-        .gl-empty {
-          min-height: 360px;
+        /* LOADING */
+
+        .gu-loading {
+          min-height: 420px;
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          flex-direction: column;
-          gap: 12px;
-          color: #7a6a6f;
+          gap: 13px;
+          color: var(--muted);
         }
 
-        .gl-empty i {
-          font-size: 3rem;
-          color: #dca1af;
-        }
-
-        .gl-empty h3 {
-          margin: 0;
-          color: #6e0f2c;
-        }
-
-        .gl-spinner {
-          width: 38px;
-          height: 38px;
-          border: 3px solid #f0dfe3;
-          border-top-color: #8b1538;
+        .gu-spinner {
+          width: 46px;
+          height: 46px;
+          border: 3px solid #f2dce1;
+          border-top-color: var(--wine);
           border-radius: 50%;
-          animation: spin 0.8s linear infinite;
+          animation: guSpin .8s linear infinite;
         }
 
-        .gl-error {
-          min-height: 180px;
+        .gu-loading strong {
+          font-size: .85rem;
+        }
+
+        .gu-loading-line {
+          width: 180px;
+          height: 7px;
+          border-radius: 99px;
+          background:
+            linear-gradient(
+              90deg,
+              #f6e8eb,
+              #fff,
+              #f6e8eb
+            );
+          background-size: 200% 100%;
+          animation: guShimmer 1.2s infinite;
+        }
+
+        .gu-loading-line.short {
+          width: 110px;
+        }
+
+        /* EMPTY */
+
+        .gu-empty {
+          min-height: 420px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+          padding: 30px;
+        }
+
+        .gu-empty-icon {
+          width: 75px;
+          height: 75px;
+          display: grid;
+          place-items: center;
+          border-radius: 22px;
+          background: var(--wine-soft);
+          color: var(--wine);
+          animation: guEmpty 2.2s ease-in-out infinite;
+        }
+
+        .gu-empty h3 {
+          margin: 19px 0 6px;
+          color: var(--text);
+          font-family: Georgia, serif;
+          font-size: 1.35rem;
+        }
+
+        .gu-empty p {
+          margin: 0;
+          color: var(--muted);
+          font-size: .8rem;
+        }
+
+        /* ERROR */
+
+        .gu-error {
           display: flex;
           align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          gap: 12px;
-          border: 1px solid #f3caca;
-          border-radius: 20px;
-          background: #fff;
+          gap: 14px;
+          padding: 18px;
+          border: 1px solid #f0cfd4;
+          border-radius: 17px;
+          background: #fff7f8;
+          color: #7e2434;
+          box-shadow: 0 10px 30px rgba(139,21,56,.06);
+          animation: guFadeUp .5s both;
+        }
+
+        .gu-error-icon {
+          width: 44px;
+          height: 44px;
+          display: grid;
+          place-items: center;
+          flex: 0 0 44px;
+          border-radius: 13px;
+          background: #fdeaea;
           color: #b42318;
         }
 
-        .gl-error i {
-          font-size: 2rem;
+        .gu-error > div:nth-child(2) {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          flex: 1;
         }
 
-        .gl-error button {
+        .gu-error strong {
+          font-size: .84rem;
+        }
+
+        .gu-error span {
+          color: #967b82;
+          font-size: .75rem;
+        }
+
+        .gu-error button {
+          padding: 9px 14px;
           border: 0;
           border-radius: 9px;
-          padding: 9px 16px;
-          background: #8b1538;
-          color: #fff;
+          background: var(--wine);
+          color: white;
+          font-weight: 800;
           cursor: pointer;
         }
 
-        @keyframes spin {
+        /* RESPONSIVE */
+
+        @media (max-width: 1180px) {
+          .gu-stats {
+            grid-template-columns: repeat(3, 1fr);
+          }
+
+          .gu-toolbar {
+            grid-template-columns: 1fr 180px 180px;
+          }
+        }
+
+        @media (max-width: 850px) {
+          .gl-users-shell {
+            width: min(94%, 700px);
+            padding-top: 27px;
+          }
+
+          .gu-header {
+            align-items: flex-start;
+          }
+
+          .gu-header-badge {
+            display: none;
+          }
+
+          .gu-toolbar {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .gu-search {
+            grid-column: 1 / -1;
+          }
+
+          .gu-table-wrap {
+            overflow: visible;
+          }
+
+          table {
+            min-width: 0;
+          }
+
+          thead {
+            display: none;
+          }
+
+          tbody,
+          tr,
+          td {
+            display: block;
+            width: 100%;
+          }
+
+          tbody tr {
+            margin: 0;
+            padding: 17px;
+            border-bottom: 1px solid #f2e4e8;
+            background: white;
+          }
+
+          tbody tr:hover {
+            transform: none;
+          }
+
+          td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 9px 0;
+            border: 0;
+            white-space: normal;
+          }
+
+          td::before {
+            content: attr(data-label);
+            flex: 0 0 95px;
+            color: #95878c;
+            font-size: .69rem;
+            font-weight: 800;
+          }
+
+          td:first-child {
+            padding-top: 0;
+          }
+
+          td:last-child {
+            padding-bottom: 0;
+          }
+
+          .gu-actions {
+            margin-inline-start: auto;
+          }
+        }
+
+        @media (max-width: 650px) {
+          .gl-users-shell {
+            width: 92%;
+          }
+
+          .gu-title-row {
+            align-items: flex-start;
+          }
+
+          .gu-title-icon {
+            width: 48px;
+            height: 48px;
+            flex-basis: 48px;
+          }
+
+          .gu-title-row h1 {
+            font-size: 1.85rem;
+          }
+
+          .gu-title-row p {
+            font-size: .78rem;
+          }
+
+          .gu-stats {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .gu-stat:last-child {
+            grid-column: 1 / -1;
+          }
+
+          .gu-toolbar {
+            grid-template-columns: 1fr;
+          }
+
+          .gu-search {
+            grid-column: auto;
+          }
+
+          .gu-pagination {
+            gap: 8px;
+          }
+
+          .gu-pagination > button span {
+            display: none;
+          }
+        }
+
+        @media (max-width: 430px) {
+          .gu-stats {
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+          }
+
+          .gu-stat {
+            min-height: 126px;
+            padding: 15px;
+            border-radius: 15px;
+          }
+
+          .gu-stat-value {
+            font-size: 1.45rem;
+          }
+
+          .gu-stat-label {
+            font-size: .7rem;
+          }
+
+          .gu-table-head {
+            padding: 17px;
+          }
+
+          .gu-table-head h2 {
+            font-size: 1.05rem;
+          }
+
+          .gu-live {
+            font-size: .62rem;
+          }
+
+          .gu-pagination {
+            flex-wrap: wrap;
+          }
+
+          .gu-pages {
+            order: -1;
+            width: 100%;
+            justify-content: center;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .gl-users-page *,
+          .gl-users-page *::before,
+          .gl-users-page *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
+          }
+        }
+
+        @keyframes guHeader {
+          from {
+            opacity: 0;
+            transform: translateY(22px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes guIcon {
+          from {
+            opacity: 0;
+            transform: scale(.65) rotate(-12deg);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) rotate(0);
+          }
+        }
+
+        @keyframes guStatIn {
+          from {
+            opacity: 0;
+            transform: translateY(25px) scale(.96);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @keyframes guTableIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes guRowIn {
+          from {
+            opacity: 0;
+            transform: translateY(13px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes guFadeUp {
+          from {
+            opacity: 0;
+            transform: translateY(14px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes guFloat {
+          0%, 100% {
+            transform: translate3d(0,0,0);
+          }
+          50% {
+            transform: translate3d(20px,-18px,0);
+          }
+        }
+
+        @keyframes guPulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: .8;
+          }
+          50% {
+            transform: scale(1.25);
+            opacity: 1;
+          }
+        }
+
+        @keyframes guSpin {
           to {
             transform: rotate(360deg);
           }
         }
 
-        :global(.dark) .gl-users-page {
-          background: #080b14;
-          color: #f8f4f5;
-        }
-
-        :global(.dark) .gl-users-head h1 {
-          color: #f4b6c2;
-        }
-
-        :global(.dark) .gl-users-head p,
-        :global(.dark) .gl-stat span,
-        :global(.dark) .gl-email,
-        :global(.dark) .gl-page-info {
-          color: #a9a0a4;
-        }
-
-        :global(.dark) .gl-stat,
-        :global(.dark) .gl-table-card,
-        :global(.dark) .gl-search,
-        :global(.dark) .gl-filters select,
-        :global(.dark) .gl-pagination > button,
-        :global(.dark) .gl-error {
-          background: #101522;
-          border-color: #252b3b;
-          color: #f8f4f5;
-        }
-
-        :global(.dark) .gl-stat strong,
-        :global(.dark) .gl-user-cell strong,
-        :global(.dark) td {
-          color: #f8f4f5;
-        }
-
-        :global(.dark) .gl-search input,
-        :global(.dark) .gl-filters select {
-          color: #f8f4f5;
-        }
-
-        :global(.dark) th {
-          background: #151b2a;
-          color: #aaa2a6;
-        }
-
-        :global(.dark) th,
-        :global(.dark) td {
-          border-color: #252b3b;
-        }
-
-        :global(.dark) tbody tr:hover {
-          background: #141a27;
-        }
-
-        :global(.dark) .gl-role.user {
-          background: #301722;
-          color: #f4b6c2;
-        }
-
-        :global(.dark) .gl-status.active {
-          background: #10291d;
-        }
-
-        :global(.dark) .gl-status.blocked {
-          background: #32191b;
-        }
-
-        :global(.dark) .gl-avatar,
-        :global(.dark) .gl-stat-icon {
-          background: #301722;
-          color: #f4b6c2;
-        }
-
-        @media (max-width: 1100px) {
-          .gl-stats {
-            grid-template-columns: repeat(3, 1fr);
+        @keyframes guShimmer {
+          0% {
+            background-position: 200% 0;
           }
-
-          .gl-filters {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .gl-search {
-            grid-column: 1 / -1;
+          100% {
+            background-position: -200% 0;
           }
         }
 
-        @media (max-width: 700px) {
-          .gl-users-shell {
-            width: 92%;
-            padding-top: 28px;
+        @keyframes guEmpty {
+          0%, 100% {
+            transform: translateY(0);
           }
-
-          .gl-users-head h1 {
-            font-size: 1.8rem;
-          }
-
-          .gl-stats {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .gl-filters {
-            grid-template-columns: 1fr;
-          }
-
-          .gl-search {
-            grid-column: auto;
-          }
-
-          .gl-pagination {
-            gap: 8px;
-          }
-
-          .gl-pagination > button {
-            padding: 8px 10px;
-          }
-        }
-
-        @media (max-width: 450px) {
-          .gl-stats {
-            grid-template-columns: 1fr;
-          }
-
-          .gl-pagination > button {
-            font-size: 0;
-          }
-
-          .gl-pagination > button i {
-            font-size: 1rem;
+          50% {
+            transform: translateY(-6px);
           }
         }
       `}</style>
     </main>
-  );
-}
-
-function StatCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: string;
-  label: string;
-  value: number;
-}) {
-  return (
-    <article className="gl-stat">
-      <div className="gl-stat-top">
-        <span className="gl-stat-icon">
-          <i className={`bi ${icon}`} />
-        </span>
-      </div>
-
-      <strong>
-        {value.toLocaleString()}
-      </strong>
-
-      <span>{label}</span>
-    </article>
   );
 }
