@@ -6,12 +6,41 @@ import Product from "../../../../../models/Product";
 
 type ProductCategory = "skincare" | "makeup";
 
+type SkinType =
+  | "all"
+  | "oily"
+  | "dry"
+  | "combination"
+  | "normal"
+  | "sensitive";
+
+type ProductConcern =
+  | "acne"
+  | "dark-spots"
+  | "dryness"
+  | "oiliness"
+  | "wrinkles"
+  | "fine-lines"
+  | "redness"
+  | "dullness"
+  | "pores"
+  | "dark-circles"
+  | "uneven-tone"
+  | "blackheads"
+  | "blemishes"
+  | "dehydration";
+
+type ProductImageInput = {
+  url: string;
+  publicId: string;
+};
+
 const validCategories: ProductCategory[] = [
   "skincare",
   "makeup",
 ];
 
-const validSkinTypes = [
+const validSkinTypes: SkinType[] = [
   "all",
   "oily",
   "dry",
@@ -20,7 +49,7 @@ const validSkinTypes = [
   "sensitive",
 ];
 
-const validConcerns = [
+const validConcerns: ProductConcern[] = [
   "acne",
   "dark-spots",
   "dryness",
@@ -37,16 +66,8 @@ const validConcerns = [
   "dehydration",
 ];
 
-type ProductImageInput = {
-  url: string;
-  publicId: string;
-};
-
-async function requireAdmin(
-  request: NextRequest
-) {
-  const token =
-    request.cookies.get("accessToken")?.value;
+async function requireAdmin(request: NextRequest) {
+  const token = request.cookies.get("accessToken")?.value;
 
   if (!token) {
     return null;
@@ -55,9 +76,7 @@ async function requireAdmin(
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
-    throw new Error(
-      "JWT_SECRET is not configured"
-    );
+    throw new Error("JWT_SECRET is not configured");
   }
 
   try {
@@ -66,10 +85,7 @@ async function requireAdmin(
       new TextEncoder().encode(secret)
     );
 
-    if (
-      payload.role !== "admin" ||
-      !payload.userId
-    ) {
+    if (payload.role !== "admin" || !payload.userId) {
       return null;
     }
 
@@ -79,17 +95,11 @@ async function requireAdmin(
   }
 }
 
-function cleanString(
-  value: unknown
-): string {
-  return typeof value === "string"
-    ? value.trim()
-    : "";
+function cleanString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
 
-function cleanStringArray(
-  value: unknown
-): string[] {
+function cleanStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -103,9 +113,7 @@ function cleanStringArray(
     .filter(Boolean);
 }
 
-function cleanImages(
-  value: unknown
-): ProductImageInput[] {
+function cleanImages(value: unknown): ProductImageInput[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -129,9 +137,7 @@ function cleanImages(
     );
 }
 
-function normalizeNumber(
-  value: unknown
-) {
+function normalizeNumber(value: unknown): number | undefined {
   if (
     value === "" ||
     value === null ||
@@ -142,15 +148,13 @@ function normalizeNumber(
 
   const number = Number(value);
 
-  return Number.isFinite(number)
-    ? number
-    : undefined;
+  return Number.isFinite(number) ? number : undefined;
 }
 
 function normalizeBoolean(
   value: unknown,
   defaultValue = false
-) {
+): boolean {
   if (typeof value === "boolean") {
     return value;
   }
@@ -158,16 +162,13 @@ function normalizeBoolean(
   return defaultValue;
 }
 
-/*
- * GET
- * List products for admin.
- */
-export async function GET(
-  request: NextRequest
-) {
+/* =========================================================
+   GET - List products for admin
+========================================================= */
+
+export async function GET(request: NextRequest) {
   try {
-    const admin =
-      await requireAdmin(request);
+    const admin = await requireAdmin(request);
 
     if (!admin) {
       return NextResponse.json(
@@ -181,12 +182,10 @@ export async function GET(
 
     await connectDB();
 
-    const { searchParams } =
-      new URL(request.url);
+    const { searchParams } = new URL(request.url);
 
     const search =
-      searchParams.get("search")?.trim() ||
-      "";
+      searchParams.get("search")?.trim() || "";
 
     const category =
       searchParams.get("category") || "all";
@@ -213,13 +212,11 @@ export async function GET(
       100
     );
 
-    const query: Record<
-      string,
-      unknown
-    > = {
+    const query: Record<string, unknown> = {
       deletedAt: null,
     };
 
+    /* Search */
     if (search) {
       query.$or = [
         {
@@ -243,6 +240,7 @@ export async function GET(
       ];
     }
 
+    /* Category */
     if (
       category === "skincare" ||
       category === "makeup"
@@ -250,6 +248,7 @@ export async function GET(
       query.category = category;
     }
 
+    /* Status */
     if (status === "active") {
       query.isActive = true;
     }
@@ -289,13 +288,18 @@ export async function GET(
       outOfStock,
       lowStock,
     ] = await Promise.all([
+      /*
+       * any هنا مقصودة لتفادي مشكلة
+       * Product.find().lean() -> never
+       * في TypeScript مع الـ Mongoose model الحالي.
+       */
       Product.find(query)
         .sort({
           createdAt: -1,
         })
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .lean<any>(),
 
       Product.countDocuments(query),
 
@@ -341,13 +345,11 @@ export async function GET(
       success: true,
 
       data: {
-        products: products.map(
-          (product) => ({
-            ...product,
-            id: product._id.toString(),
-            _id: undefined,
-          })
-        ),
+        products: products.map((product: any) => ({
+          ...product,
+          id: product._id.toString(),
+          _id: undefined,
+        })),
 
         pagination: {
           page,
@@ -374,24 +376,20 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Failed to load products",
+        message: "Failed to load products",
       },
       { status: 500 }
     );
   }
 }
 
-/*
- * POST
- * Create a new product.
- */
-export async function POST(
-  request: NextRequest
-) {
+/* =========================================================
+   POST - Create new product
+========================================================= */
+
+export async function POST(request: NextRequest) {
   try {
-    const admin =
-      await requireAdmin(request);
+    const admin = await requireAdmin(request);
 
     if (!admin) {
       return NextResponse.json(
@@ -408,22 +406,29 @@ export async function POST(
     const body = await request.json();
 
     const name = cleanString(body.name);
+
     const brand = cleanString(body.brand);
+
     const description =
       cleanString(body.description);
 
     const category =
       cleanString(body.category) as ProductCategory;
 
-    const images = cleanImages(
-      body.images
-    );
+    const images = cleanImages(body.images);
 
+    /*
+     * تحويل صريح للأنواع المطلوبة في Product model
+     */
     const skinTypes =
-      cleanStringArray(body.skinTypes);
+      cleanStringArray(
+        body.skinTypes
+      ) as SkinType[];
 
     const concerns =
-      cleanStringArray(body.concerns);
+      cleanStringArray(
+        body.concerns
+      ) as ProductConcern[];
 
     const ingredients =
       cleanStringArray(body.ingredients);
@@ -434,9 +439,8 @@ export async function POST(
     const howToUse =
       cleanString(body.howToUse);
 
-    const price = normalizeNumber(
-      body.price
-    );
+    const price =
+      normalizeNumber(body.price);
 
     const discountPrice =
       normalizeNumber(body.discountPrice);
@@ -449,22 +453,28 @@ export async function POST(
         body.lowStockThreshold
       ) ?? 5;
 
-    const ageMin = normalizeNumber(
-      body.suitableForAge?.min
-    );
+    const ageMin =
+      normalizeNumber(
+        body.suitableForAge?.min
+      );
 
-    const ageMax = normalizeNumber(
-      body.suitableForAge?.max
-    );
+    const ageMax =
+      normalizeNumber(
+        body.suitableForAge?.max
+      );
 
-    const sku = cleanString(body.sku);
+    const sku =
+      cleanString(body.sku);
+
+    /* =========================
+       Basic validation
+    ========================= */
 
     if (name.length < 2) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Product name is required",
+          message: "Product name is required",
         },
         { status: 400 }
       );
@@ -484,15 +494,14 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Invalid product category",
+          message: "Invalid product category",
         },
         { status: 400 }
       );
     }
 
     if (
-      !price ||
+      price === undefined ||
       price <= 0
     ) {
       return NextResponse.json(
@@ -504,6 +513,10 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    /* =========================
+       Discount validation
+    ========================= */
 
     if (
       discountPrice !== undefined &&
@@ -519,6 +532,10 @@ export async function POST(
       );
     }
 
+    /* =========================
+       Images validation
+    ========================= */
+
     if (
       images.length < 1 ||
       images.length > 5
@@ -532,6 +549,10 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    /* =========================
+       Stock validation
+    ========================= */
 
     if (stock < 0) {
       return NextResponse.json(
@@ -555,6 +576,10 @@ export async function POST(
       );
     }
 
+    /* =========================
+       Skin types validation
+    ========================= */
+
     const invalidSkinType =
       skinTypes.some(
         (item) =>
@@ -565,12 +590,15 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Invalid skin type",
+          message: "Invalid skin type",
         },
         { status: 400 }
       );
     }
+
+    /* =========================
+       Concerns validation
+    ========================= */
 
     const invalidConcern =
       concerns.some(
@@ -582,12 +610,15 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Invalid concern",
+          message: "Invalid concern",
         },
         { status: 400 }
       );
     }
+
+    /* =========================
+       Age validation
+    ========================= */
 
     if (
       ageMin !== undefined &&
@@ -604,10 +635,17 @@ export async function POST(
       );
     }
 
+    /* =========================
+       SKU validation
+    ========================= */
+
     if (sku) {
+      const normalizedSku =
+        sku.toUpperCase();
+
       const existingSku =
         await Product.findOne({
-          sku: sku.toUpperCase(),
+          sku: normalizedSku,
           deletedAt: null,
         });
 
@@ -615,13 +653,16 @@ export async function POST(
         return NextResponse.json(
           {
             success: false,
-            message:
-              "SKU already exists",
+            message: "SKU already exists",
           },
           { status: 409 }
         );
       }
     }
+
+    /* =========================
+       Create product
+    ========================= */
 
     const product =
       await Product.create({
@@ -629,12 +670,17 @@ export async function POST(
         brand,
         category,
         description,
+
         price,
         discountPrice,
+
         currency: "EGP",
+
         images,
+
         skinTypes,
         concerns,
+
         ingredients,
         benefits,
         howToUse,
@@ -643,13 +689,19 @@ export async function POST(
           ...(ageMin !== undefined
             ? { min: ageMin }
             : {}),
+
           ...(ageMax !== undefined
             ? { max: ageMax }
             : {}),
         },
 
-        shade: cleanString(body.shade),
-        size: cleanString(body.size),
+        shade: cleanString(
+          body.shade
+        ),
+
+        size: cleanString(
+          body.size
+        ),
 
         stock,
         lowStockThreshold,
@@ -679,56 +731,90 @@ export async function POST(
         deletedAt: null,
       });
 
+    /* =========================
+       Response
+    ========================= */
+
     return NextResponse.json(
       {
         success: true,
+
         message:
           "Product created successfully",
 
         data: {
           product: {
             id: product._id.toString(),
+
             name: product.name,
             brand: product.brand,
             category: product.category,
+
             description:
               product.description,
+
             price: product.price,
+
             discountPrice:
               product.discountPrice,
+
             currency:
               product.currency,
-            images: product.images,
+
+            images:
+              product.images,
+
             skinTypes:
               product.skinTypes,
+
             concerns:
               product.concerns,
+
             ingredients:
               product.ingredients,
+
             benefits:
               product.benefits,
+
             howToUse:
               product.howToUse,
+
             suitableForAge:
               product.suitableForAge,
-            shade: product.shade,
-            size: product.size,
-            stock: product.stock,
+
+            shade:
+              product.shade,
+
+            size:
+              product.size,
+
+            stock:
+              product.stock,
+
             lowStockThreshold:
               product.lowStockThreshold,
-            sku: product.sku,
+
+            sku:
+              product.sku,
+
             rating:
               product.rating,
+
             reviewsCount:
               product.reviewsCount,
+
             featured:
               product.featured,
+
             bestSeller:
               product.bestSeller,
+
             isActive:
               product.isActive,
+
             createdAt:
               product.createdAt,
+
             updatedAt:
               product.updatedAt,
           },
@@ -745,8 +831,7 @@ export async function POST(
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Failed to create product",
+        message: "Failed to create product",
       },
       { status: 500 }
     );
