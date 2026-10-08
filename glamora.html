@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glamora | Beauty That Fits You</title>
+<style>
+:root{--w:#8b1538;--wd:#6e0f2c;--bl:#fbe4e8;--pk:#f4b6c2;--ink:#2a1a1f;--mu:#7a6a6f;--ln:#f0dfe3;--navy:#1b2540}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{font-family:system-ui,'Segoe UI',sans-serif;color:var(--ink);background:#fff;line-height:1.5}
+a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select{font:inherit;padding:9px 10px;border:1px solid var(--ln);border-radius:6px;background:#fff;color:var(--ink);width:100%}
+:focus-visible{outline:2px solid var(--w);outline-offset:2px}
+h1,h2,h3{font-family:Georgia,serif;font-weight:600}
+.nav{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:12px 5%;background:#fff;border-bottom:1px solid var(--ln)}
+.logo{display:inline-flex;align-items:center;gap:8px;font-family:Georgia,serif;font-size:1.45rem;color:var(--w);font-weight:700;letter-spacing:.5px}
+.lm{width:32px;height:32px}
+footer .lm{--c1:#fff;--c2:#f4b6c2;--c3:#f9cdd6}
+.nav nav{display:flex;gap:26px;font-size:.9rem}.nav nav a.on,.nav nav a:hover{color:var(--w);font-weight:600}
+.ic{display:flex;gap:4px}.ic a{position:relative;font-size:1.15rem;padding:6px 8px}
+.dot{position:absolute;top:0;right:0;min-width:16px;height:16px;border-radius:8px;background:var(--w);color:#fff;font-size:.65rem;display:grid;place-items:center}
+.btn{display:inline-block;background:var(--w);color:#fff;padding:11px 24px;border-radius:6px;font-weight:600;font-size:.9rem}.btn:hover{background:var(--wd)}
+.btn.o{background:#fff;color:var(--w);border:1px solid var(--w)}.btn.o:hover{background:var(--bl)}.btn.full{width:100%;text-align:center;margin-top:10px}
+.wrap{padding:30px 5%}
+.hero{min-height:400px;display:flex;align-items:center;padding:0 5%;background:radial-gradient(circle at 82% 40%,#f08fa6,#f9cdd6 38%,#fde6ea 72%)}
+.hero h1{font-size:clamp(2.6rem,7vw,4.4rem);line-height:1.05;color:#7a1331;font-weight:400}.hero p{margin:16px 0 24px;max-width:330px;color:#5a2b38}
+.finder{text-align:center}.finder p{color:var(--mu);font-size:.85rem;margin:6px 0 20px}
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;background:var(--bl);padding:16px;border-radius:12px;max-width:900px;margin:auto;text-align:left}
+.bar label{flex:1;min-width:140px;font-size:.8rem;font-weight:600;display:flex;flex-direction:column;gap:4px}
+.cats{display:flex;gap:20px;overflow-x:auto;padding:26px 0;justify-content:center}
+.cat{text-align:center;font-size:.8rem;cursor:pointer;flex:0 0 auto}.cat .im{width:78px;height:78px;border-radius:50%;margin:0 auto 6px;background:var(--bl);display:grid;place-items:center}.cat img{width:46px}
+.row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}.row a{color:var(--w);font-weight:600;font-size:.85rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+.card{border:1px solid var(--ln);border-radius:10px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.th{height:180px;background:linear-gradient(160deg,var(--bl),var(--pk));display:grid;place-items:center;cursor:pointer}.th img{height:140px}
+.fav{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--w)}.fav.on{background:var(--w);color:#fff}
+.inf{padding:12px;display:flex;flex-direction:column;flex:1}.inf h3{font-family:inherit;font-size:.88rem;cursor:pointer}.pr{color:var(--w);font-weight:700}.rt{font-size:.75rem;color:var(--mu)}
+.inf .btn{margin-top:auto;text-align:center;padding:8px}
+.shop{display:grid;grid-template-columns:230px 1fr;gap:24px}
+.side{display:flex;flex-direction:column;gap:12px;font-size:.85rem;font-weight:600;align-self:start;border:1px solid var(--ln);border-radius:10px;padding:16px}
+.crumb{font-size:.78rem;color:var(--mu);margin-bottom:14px}
+.det{display:grid;grid-template-columns:1fr 1fr;gap:34px}.big{height:420px;border-radius:12px;background:linear-gradient(160deg,var(--bl),var(--pk));display:grid;place-items:center}.big img{height:330px}
+.tag{display:inline-block;background:var(--bl);color:var(--w);font-size:.75rem;padding:3px 10px;border-radius:12px;margin:2px}
+.qty{display:flex;align-items:center;gap:8px;margin:12px 0}.qty button{width:32px;height:32px;border:1px solid var(--ln);border-radius:6px}.qty span{width:30px;text-align:center}
+.cart{display:grid;grid-template-columns:2fr 1fr;gap:24px}
+.li{display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--ln)}.li img{height:60px;background:var(--bl);padding:4px;border-radius:8px}.li .g{flex:1}
+.sum{background:var(--bl);border-radius:10px;padding:18px;align-self:start}.sum p{display:flex;justify-content:space-between;margin:6px 0}
+.auth{display:grid;grid-template-columns:1fr 1fr;min-height:480px;border-radius:12px;overflow:hidden;border:1px solid var(--ln)}
+.auth .l{background:linear-gradient(160deg,#a21d45,#e48ba1);color:#fff;padding:40px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.auth .r{padding:40px;display:flex;flex-direction:column;gap:12px;justify-content:center}
+.tabs{display:flex;gap:18px;border-bottom:1px solid var(--ln);margin-bottom:16px}.tabs button{padding:8px 4px;color:var(--mu)}.tabs .on{color:var(--w);border-bottom:2px solid var(--w);font-weight:600}
+.ord{border:1px solid var(--ln);border-radius:10px;padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.st{font-size:.75rem;padding:3px 10px;border-radius:12px;font-weight:600}.Delivered{background:#d9f5e3;color:#16794a}.Shipped{background:#dbeafe;color:#1d4ed8}.Processing{background:#ffe8cc;color:#b45309}.Cancelled{background:#fde0e0;color:#b91c1c}
+.adm{display:grid;grid-template-columns:200px 1fr;min-height:560px;border-radius:12px;overflow:hidden;border:1px solid var(--ln)}
+.adm aside{background:var(--navy);color:#cfd6ea;padding:18px 10px;display:flex;flex-direction:column;gap:4px}.adm aside b{color:#fff;padding:0 10px 12px}
+.adm aside button{text-align:left;padding:10px;border-radius:6px}.adm aside .on{background:var(--w);color:#fff}
+.adm main{padding:22px;background:#faf7f8;overflow-x:auto}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:14px 0}.kp div{background:#fff;border-radius:8px;padding:14px;font-size:.8rem;color:var(--mu)}.kp b{display:block;font-size:1.3rem;color:var(--ink)}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;font-size:.82rem}th,td{padding:10px;text-align:left;border-bottom:1px solid var(--ln)}td img{height:34px}
+footer{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:28px;padding:42px 5% 18px;background:var(--wd);color:#f6dbe2;font-size:.85rem}
+footer .logo,footer h4{color:#fff}footer a,footer span{display:block;margin:5px 0}footer small{grid-column:1/-1;border-top:1px solid #ffffff22;padding-top:12px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:8px;transition:.3s;z-index:20}#toast.s{transform:translateX(-50%)}
+#mb{display:none;font-size:1.3rem;padding:6px 8px}
+@media(max-width:760px){.nav nav{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;background:#fff;border-bottom:1px solid var(--ln)}.nav nav.open{display:flex}.nav nav a{padding:14px 5%}#mb{display:block}.shop,.det,.cart,.auth,.adm{grid-template-columns:1fr}footer{grid-template-columns:1fr 1fr}.cats{justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="lg" viewBox="0 0 40 40">
+  <path d="M20 16C24 21 24 27 20 32C16 27 16 21 20 16Z" transform="rotate(-62 20 32)" fill="var(--c3,#f4b6c2)"/>
+  <path d="M20 16C24 21 24 27 20 32C16 27 16 21 20 16Z" transform="rotate(62 20 32)" fill="var(--c3,#f4b6c2)"/>
+  <path d="M20 12C25 18 25 26 20 32C15 26 15 18 20 12Z" transform="rotate(-31 20 32)" fill="var(--c2,#d6506f)"/>
+  <path d="M20 12C25 18 25 26 20 32C15 26 15 18 20 12Z" transform="rotate(31 20 32)" fill="var(--c2,#d6506f)"/>
+  <path d="M20 7C26 14 26 24 20 32C14 24 14 14 20 7Z" fill="var(--c1,#8b1538)"/>
+  <path d="M10 35.5Q20 39 30 35.5" stroke="var(--c1,#8b1538)" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+</symbol></svg>
+<header class="nav">
+  <a class="logo" href="#/" aria-label="Glamora home"><svg class="lm"><use href="#lg"/></svg>Glamora</a>
+  <nav id="links"><a href="#/">Home</a><a href="#/products">Products</a><a href="#/orders">Orders</a><a href="#/admin">Admin</a></nav>
+  <div class="ic"><a href="#/products">⌕</a><a href="#/products" id="wc">♡</a><a href="#/cart" id="cc">🛍</a><a href="#/login" id="uc">👤</a><button id="mb" aria-label="Menu" onclick="$('#links').classList.toggle('open')">☰</button></div>
+</header>
+<div id="app"></div>
+<footer>
+  <div><a class="logo" href="#/" aria-label="Glamora home"><svg class="lm"><use href="#lg"/></svg>Glamora</a><p>Makeup picked for your skin, not for the trend.</p></div>
+  <div><h4>Shop</h4><a href="#/products">All products</a><a href="#/products">Foundation</a><a href="#/products">Lipstick</a></div>
+  <div><h4>Account</h4><a href="#/login">Login</a><a href="#/orders">My orders</a><a href="#/cart">Cart</a></div>
+  <div><h4>Contact</h4><a href="mailto:hello@glamora.com">hello@glamora.com</a><span>Cash on delivery across Egypt</span></div>
+  <small>© 2026 Glamora. Demo store, products are fictional.</small>
+</footer>
+<div id="toast"></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), E=(n,l)=>n.toLocaleString('en-US');
+const COL={Foundation:'#d9a77c',Lipstick:'#9b1030',Mascara:'#222',Blush:'#e0607a','Skin Care':'#e8c9a0',Concealer:'#d4a373','Makeup Sets':'#b0305a'};
+const ICON={Foundation:'🧴',Lipstick:'💄',Mascara:'🖌️',Blush:'🌸','Skin Care':'🧪',Concealer:'✨','Makeup Sets':'🎁'};
+// fake product art: inline SVG, no external images
+function art(cat,c){
+  const S={
+    Foundation:`<rect x="30" y="50" width="40" height="80" rx="8" fill="${c}"/><rect x="38" y="20" width="24" height="30" rx="4" fill="#222"/><rect x="36" y="78" width="28" height="30" rx="3" fill="#fff" opacity=".6"/>`,
+    Lipstick:`<rect x="35" y="80" width="30" height="50" rx="4" fill="#222"/><rect x="38" y="40" width="24" height="40" fill="#c9a24b"/><path d="M38 40q12-30 24 0z" fill="${c}"/>`,
+    Mascara:`<rect x="42" y="20" width="16" height="50" rx="4" fill="#222"/><rect x="38" y="70" width="24" height="60" rx="5" fill="${c}"/><rect x="38" y="90" width="24" height="6" fill="#c9a24b"/>`,
+    Blush:`<circle cx="50" cy="75" r="42" fill="#eee"/><circle cx="50" cy="75" r="32" fill="${c}"/><circle cx="40" cy="65" r="8" fill="#fff" opacity=".3"/>`,
+    'Skin Care':`<rect x="30" y="70" width="40" height="60" rx="8" fill="${c}" opacity=".85"/><rect x="42" y="45" width="16" height="25" fill="#222"/><path d="M42 45q8-25 16 0z" fill="#444"/>`,
+    Concealer:`<rect x="40" y="50" width="20" height="80" rx="8" fill="${c}"/><rect x="38" y="20" width="24" height="30" rx="5" fill="#222"/>`,
+    'Makeup Sets':`<rect x="12" y="55" width="76" height="70" rx="6" fill="${c}"/><rect x="12" y="55" width="76" height="14" fill="#fff" opacity=".35"/><circle cx="50" cy="100" r="14" fill="#fff" opacity=".5"/>`};
+  return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150">${S[cat]}</svg>`);
+}
+const P=[
+ [1,'Fit Me Foundation','Maybelline','Foundation',500,4.8,120,['Oily','Combination','Normal'],'#d9a77c','A lightweight, natural-finish foundation that controls shine and minimizes pores.'],
+ [2,'True Match Foundation','L\'Oréal','Foundation',650,4.6,98,['Combination','Dry','Normal'],'#c58c63','Blends into your tone with a breathable, medium-coverage finish.'],
+ [3,'Matte Liquid Lipstick','Huda Beauty','Lipstick',700,4.7,156,['Oily','Normal','Dry','Sensitive','Combination'],'#9b1030','Long-wear matte colour that does not dry out your lips.'],
+ [4,'Soft Pinch Blush','Rare Beauty','Blush',650,4.9,210,['Dry','Normal','Combination'],'#e0607a','Buildable liquid blush, a tiny drop goes a long way.'],
+ [5,'Lash Sky Mascara','Maybelline','Mascara',450,4.5,87,['Normal','Oily','Dry','Sensitive','Combination'],'#d8d8d8','Length and lift with no clumps and no smudging.'],
+ [6,'Instant Concealer','NYX','Concealer',550,4.6,134,['Oily','Normal','Combination'],'#d4a373','Full-coverage concealer for dark circles and blemishes.'],
+ [7,'Niacinamide Serum','The Ordinary','Skin Care',600,4.8,190,['Oily','Sensitive','Combination'],'#e8c9a0','Reduces the look of pores and balances oil. Acne-prone friendly.'],
+ [8,'Pro Setting Powder','MAC','Concealer',750,4.7,88,['Oily','Combination'],'#e2b48e','Sets makeup for an all-day matte look.'],
+ [9,'Gloss Bomb Highlighter','Fenty Beauty','Blush',800,4.9,176,['Dry','Normal'],'#f2c1a4','A glassy glow you can wear alone or over makeup.'],
+ [10,'Hydra Day Cream','L\'Oréal','Skin Care',480,4.4,65,['Dry','Sensitive','Normal'],'#cfe6ee','Light moisture that sinks in fast, no greasy feel.'],
+ [11,'Velvet Nude Lipstick','MAC','Lipstick',620,4.6,112,['Normal','Dry','Combination'],'#b5584a','A creamy everyday nude with a soft velvet finish.'],
+ [12,'Glow Starter Set','Huda Beauty','Makeup Sets',1400,4.8,59,['Normal','Dry','Oily','Combination','Sensitive'],'#b0305a','Lipstick, blush and mascara in a gift-ready box.']
+].map(a=>({id:a[0],name:a[1],brand:a[2],cat:a[3],price:a[4],rate:a[5],n:a[6],skin:a[7],col:a[8],desc:a[9]}));
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem('gl_'+k))??d}catch{return d}};
+const sv=(k,v)=>{try{localStorage.setItem('gl_'+k,JSON.stringify(v))}catch{}};
+let cart=ld('cart',{}), wish=ld('wish',[]), user=ld('user',null), tab='login', adm='dash', showF=false, F={skin:'',brand:'',max:2000,q:'',sort:'',cat:''};
+let orders=ld('orders',[{id:'GM1001',cust:'Sara Ahmed',date:'Oct 5, 2026',total:1200,st:'Delivered',items:[1,3,4]},{id:'GM1002',cust:'Nour Mohamed',date:'Oct 4, 2026',total:850,st:'Shipped',items:[2,5]},{id:'GM1003',cust:'Menna Ali',date:'Oct 3, 2026',total:650,st:'Processing',items:[4]},{id:'GM1004',cust:'Salma Hassan',date:'Oct 2, 2026',total:950,st:'Cancelled',items:[6,7]}]);
+ld('extra',[]).forEach(x=>P.push(x));
+const pid=id=>P.find(p=>p.id==id), img=p=>`<img src="${art(p.cat,p.col)}" alt="${p.name}">`;
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('s');setTimeout(()=>t.classList.remove('s'),1800)};
+const cnt=()=>Object.values(cart).reduce((a,b)=>a+b,0);
+const card=p=>`<article class="card"><button class="fav ${wish.includes(p.id)?'on':''}" onclick="fav(${p.id})" aria-label="Wishlist">♡</button>
+ <div class="th" onclick="go('product/${p.id}')">${img(p)}</div><div class="inf"><h3 onclick="go('product/${p.id}')">${p.brand} ${p.name}</h3><div class="pr">${E(p.price)} EGP</div><div class="rt">★ ${p.rate} (${p.n})</div>
+ <button class="btn" onclick="add(${p.id})">Add to cart</button></div></article>`;
+function go(r){location.hash='#/'+r}
+function add(id,q=1){cart[id]=(cart[id]||0)+q;sv('cart',cart);toast('Added to cart');nav()}
+function fav(id){wish=wish.includes(id)?wish.filter(x=>x!=id):[...wish,id];sv('wish',wish);route()}
+function nav(){const c=cnt();$('#cc').innerHTML='🛍'+(c?`<span class="dot">${c}</span>`:'');$('#wc').innerHTML='♡'+(wish.length?`<span class="dot">${wish.length}</span>`:'');
+ const h=location.hash.split('/')[1]||'';document.querySelectorAll('#links a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')=='#/'+h))}
+
+const V={
+home(){const q=P.slice(0,4).map(card).join('');return `<section class="hero"><div><h1>Beauty<br>That Fits You</h1><p>Discover makeup products specially selected for your skin type.</p><a class="btn" href="#/products">Shop now →</a></div></section>
+ <section class="wrap finder"><h2>Find Your Perfect Products</h2><p>Tell us your skin type and budget to get personalized recommendations.</p>
+ <div class="bar"><label>Skin type<select id="fs"><option>Oily<option>Dry<option>Combination<option>Sensitive<option>Normal</select></label>
+ <label>Budget<select id="fb"><option value="500">Up to 500 EGP<option value="1000">Up to 1000 EGP<option value="2000" selected>Up to 2000 EGP</select></label>
+ <button class="btn" onclick="F={...F,skin:$('#fs').value,max:+$('#fb').value,cat:'',brand:'',q:''};go('products')">Show products →</button></div>
+ <div class="cats">${Object.keys(COL).map(c=>`<div class="cat" onclick="F={...F,cat:'${c}',skin:'',max:2000};go('products')"><div class="im"><img src="${art(c,COL[c])}" alt=""></div>${c}</div>`).join('')}</div></section>
+ <section class="wrap" style="padding-top:0"><div class="row"><h2>Best Sellers</h2><a href="#/products">View all →</a></div><div class="grid">${q}</div></section>`},
+products(){const opt=(a,v)=>a.map(x=>`<option ${x==v?'selected':''}>${x}`).join('');
+ let l=P.filter(p=>(!F.skin||p.skin.includes(F.skin))&&(!F.brand||p.brand==F.brand)&&(!F.cat||p.cat==F.cat)&&p.price<=F.max&&(p.name+p.brand).toLowerCase().includes(F.q.toLowerCase()));
+ if(F.sort=='lo')l.sort((a,b)=>a.price-b.price);if(F.sort=='hi')l.sort((a,b)=>b.price-a.price);if(F.sort=='rt')l.sort((a,b)=>b.rate-a.rate);
+ return `<div class="wrap"><div class="shop"><div class="side">
+ <label>Search<input id="q" value="${F.q}" placeholder="Search products..." oninput="F.q=this.value;sear()"></label>
+ <label>Skin type<select onchange="F.skin=this.value;route()"><option value="">All${opt(['Oily','Dry','Combination','Sensitive','Normal'],F.skin)}</select></label>
+ <label>Brand<select onchange="F.brand=this.value;route()"><option value="">All${opt([...new Set(P.map(p=>p.brand))],F.brand)}</select></label>
+ <label>Category<select onchange="F.cat=this.value;route()"><option value="">All${opt(Object.keys(COL),F.cat)}</select></label>
+ <label>Max budget: ${E(F.max)} EGP<input type="range" min="300" max="2000" step="50" value="${F.max}" onchange="F.max=+this.value;route()"></label>
+ <label>Sort<select onchange="F.sort=this.value;route()"><option value="">Popular<option value="lo" ${F.sort=='lo'?'selected':''}>Price: low to high<option value="hi" ${F.sort=='hi'?'selected':''}>Price: high to low<option value="rt" ${F.sort=='rt'?'selected':''}>Top rated</select></label>
+ <button class="btn o" onclick="F={skin:'',brand:'',max:2000,q:'',sort:'',cat:''};route()">Clear all</button></div>
+ <div><p class="crumb">Showing ${l.length} products</p><div class="grid">${l.map(card).join('')||'<p>No match. Try a higher budget or clear filters.</p>'}</div></div></div></div>`},
+product(id){const p=pid(id);if(!p)return '<div class="wrap">Not found</div>';
+ return `<div class="wrap"><p class="crumb"><a href="#/">Home</a> / <a href="#/products">Products</a> / ${p.name}</p><div class="det"><div class="big">${img(p)}</div><div>
+ <h1>${p.brand} ${p.name}</h1><p class="rt">★ ${p.rate} (${p.n} reviews)</p><h2 class="pr" style="margin:8px 0">${E(p.price)} EGP</h2><p>${p.desc}</p>
+ <p style="margin-top:12px"><b>Suitable for</b></p>${p.skin.map(s=>`<span class="tag">${s}</span>`).join('')}
+ <div class="qty"><b>Quantity</b><button onclick="q(-1)">−</button><span id="qv">1</span><button onclick="q(1)">+</button></div>
+ <button class="btn full" onclick="add(${p.id},+$('#qv').textContent)">Add to cart</button><button class="btn o full" onclick="fav(${p.id})">${wish.includes(p.id)?'Remove from wishlist':'Add to wishlist'}</button></div></div>
+ <div class="row" style="margin-top:40px"><h2>You may also like</h2></div><div class="grid">${P.filter(x=>x.cat==p.cat&&x.id!=p.id).slice(0,4).concat(P.filter(x=>x.cat!=p.cat)).slice(0,4).map(card).join('')}</div></div>`},
+cart(){const ids=Object.keys(cart);if(!ids.length)return '<div class="wrap"><h2>Your cart is empty</h2><p style="margin:10px 0 16px">Find something that fits your skin first.</p><a class="btn" href="#/products">Browse products</a></div>';
+ const sub=ids.reduce((a,i)=>a+pid(i).price*cart[i],0),sh=60;
+ return `<div class="wrap"><h2>Your Cart (${cnt()} items)</h2><div class="cart"><div>${ids.map(i=>{const p=pid(i);return `<div class="li">${img(p)}<div class="g"><b>${p.name}</b><div class="pr">${E(p.price)} EGP</div></div>
+ <div class="qty"><button onclick="cq(${i},-1)">−</button><span>${cart[i]}</span><button onclick="cq(${i},1)">+</button></div><button onclick="cq(${i},-99)" aria-label="Remove">🗑</button></div>`}).join('')}<a class="btn o" style="margin-top:16px" href="#/products">← Continue shopping</a></div>
+ <div class="sum"><h3>Order Summary</h3><p><span>Subtotal</span><span>${E(sub)} EGP</span></p><p><span>Shipping</span><span>${sh} EGP</span></p><p><b>Total</b><b>${E(sub+sh)} EGP</b></p>
+ <button class="btn full" onclick="checkout(${sub+sh})">Proceed to checkout</button><p style="margin-top:12px;font-size:.8rem">💵 Cash on delivery. Card payment coming soon.</p></div></div></div>`},
+login(){if(user)return `<div class="wrap"><h2>Hi, ${user}</h2><p style="margin:8px 0 16px">You are logged in.</p><a class="btn" href="#/orders">My orders</a> <button class="btn o" onclick="user=null;sv('user',null);route()">Logout</button></div>`;
+ return `<div class="wrap"><div class="auth"><div class="l"><h1>Welcome Back</h1><p>Login to continue your beauty journey with Glamora.</p><p>♥ Personalized recommendations</p><p>♥ Save your favorite products</p><p>♥ Track your orders</p></div>
+ <div class="r"><div class="tabs"><button class="${tab=='login'?'on':''}" onclick="tab='login';route()">Login</button><button class="${tab=='reg'?'on':''}" onclick="tab='reg';route()">Register</button></div>
+ ${tab=='reg'?'<label>Name<input id="nm" placeholder="Your name"></label>':''}<label>Email<input id="em" type="email" placeholder="Enter your email"></label><label>Password<input type="password" placeholder="Enter your password"></label>
+ <button class="btn" onclick="signin()">${tab=='login'?'Login':'Create account'}</button></div></div></div>`},
+orders(){if(!user)return `<div class="wrap"><h2>My Orders</h2><p style="margin:8px 0 16px">Login to see your orders.</p><a class="btn" href="#/login">Login</a></div>`;
+ return `<div class="wrap"><h2 style="margin-bottom:16px">My Orders</h2>${orders.filter(o=>o.cust==user||o.cust=='Sara Ahmed').map(o=>`<div class="ord"><div><b>Order #${o.id}</b><br><small>Placed on ${o.date}</small></div><div>${o.items.map(i=>`<img src="${art(pid(i).cat,pid(i).col)}" height="36" alt="">`).join(' ')}</div><span class="st ${o.st}">${o.st}</span><b>Total: ${E(o.total)} EGP</b></div>`).join('')}</div>`},
+admin(){const T={dash(){const rev=orders.reduce((a,o)=>a+(o.st!='Cancelled'?o.total:0),0),m=[8,10,14,13,19,25],mx=25;
+  return `<h2>Dashboard</h2><div class="kp"><div>Total sales<b>${E(25400)} EGP</b></div><div>Total orders<b>${orders.length+82}</b></div><div>Total products<b>${P.length}</b></div><div>Users<b>320</b></div></div>
+  <div style="background:#fff;border-radius:8px;padding:14px"><b>Sales overview (K EGP)</b><svg viewBox="0 0 300 100" style="width:100%;height:160px"><polyline fill="none" stroke="#8b1538" stroke-width="2" points="${m.map((v,i)=>`${15+i*54},${90-v/mx*80}`).join(' ')}"/>${m.map((v,i)=>`<circle cx="${15+i*54}" cy="${90-v/mx*80}" r="3" fill="#8b1538"/><text x="${15+i*54}" y="100" font-size="7" text-anchor="middle">${['Apr','May','Jun','Jul','Aug','Sep'][i]}</text>`).join('')}</svg></div>`},
+ prods(){return `<div class="row"><h2>Products</h2><button class="btn" onclick="showF=!showF;route()">${showF?'Cancel':'+ Add new product'}</button></div>${showF?`<div class="bar" style="margin-bottom:14px;max-width:none"><label>Name<input id="an"></label><label>Brand<input id="ab"></label><label>Category<select id="ac">${Object.keys(COL).map(c=>`<option>${c}`).join('')}</select></label><label>Price (EGP)<input id="ap" type="number" min="1"></label><label>Stock<input id="as" type="number" min="0" value="10"></label><button class="btn" onclick="addP()">Save product</button></div>`:''}<table><tr><th>Image<th>Name<th>Category<th>Price<th>Stock<th></tr>${P.map(p=>`<tr><td>${img(p)}<td>${p.brand} ${p.name}<td>${p.cat}<td>${E(p.price)} EGP<td>${p.stock??10+p.id*3}<td><button onclick="delP(${p.id})" aria-label="Delete">🗑</button></tr>`).join('')}</table>`},
+ ords(){return `<h2 style="margin-bottom:12px">Orders</h2><table><tr><th>Order #<th>Customer<th>Date<th>Total<th>Status</tr>${orders.map(o=>`<tr><td>${o.id}<td>${o.cust}<td>${o.date}<td>${E(o.total)} EGP<td><select onchange="setSt('${o.id}',this.value)">${['Processing','Shipped','Delivered','Cancelled'].map(s=>`<option ${s==o.st?'selected':''}>${s}`).join('')}</select></tr>`).join('')}</table>`}};
+ return `<div class="wrap"><div class="adm"><aside><b>Glamora Admin</b>${[['dash','Dashboard'],['prods','Products'],['ords','Orders']].map(([k,n])=>`<button class="${adm==k?'on':''}" onclick="adm='${k}';route()">${n}</button>`).join('')}</aside><main>${T[adm]()}</main></div></div>`}
+};
+function q(d){const e=$('#qv');e.textContent=Math.max(1,+e.textContent+d)}
+function cq(i,d){cart[i]+=d;if(cart[i]<=0)delete cart[i];sv('cart',cart);route()}
+function sear(){const p=V.products(),t=document.createElement('div');t.innerHTML=p;$('.grid').innerHTML=$('.grid',t).innerHTML;$('.crumb').textContent=$('.crumb',t).textContent}
+function checkout(t){if(!user){toast('Login first');return go('login')}orders.unshift({id:'GM'+(1005+orders.length),cust:user,date:'Oct 6, 2026',total:t,st:'Processing',items:Object.keys(cart).map(Number)});sv('orders',orders);cart={};sv('cart',cart);toast('Order placed!');go('orders')}
+function signin(){const n=$('#nm'),e=$('#em').value;user=(n&&n.value)||(e?e.split('@')[0]:'Guest');sv('user',user);toast('Welcome, '+user);go('orders')}
+function setSt(id,s){orders.find(o=>o.id==id).st=s;sv('orders',orders);toast('Status updated')}
+function delP(id){const i=P.findIndex(p=>p.id==id);P.splice(i,1);sv('extra',ld('extra',[]).filter(x=>x.id!=id));route()}
+function addP(){const n=$('#an').value.trim(),pr=+$('#ap').value;if(!n||!pr)return toast('Name and price are required');const c=$('#ac').value;
+ const o={id:Math.max(0,...P.map(p=>p.id))+1,name:n,brand:$('#ab').value.trim()||'Glamora',cat:c,price:pr,rate:4.5,n:0,skin:['Oily','Dry','Combination','Sensitive','Normal'],col:COL[c],desc:'New product.',stock:+$('#as').value||0};
+ P.push(o);sv('extra',[...ld('extra',[]),o]);showF=false;toast('Product added');route()}
+function route(){const [,r='',a]=location.hash.slice(1).split('/');const v=V[r||'home']||V.home;$('#app').innerHTML=v(a);nav();if(!r||r=='home'||a)scrollTo(0,0)}
+addEventListener('hashchange',()=>{$('#links').classList.remove('open');route();scrollTo(0,0)});route();
+</script>
+</body>
+</html>
