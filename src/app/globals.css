@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+
+  --primary: #9f1239;
+  --primary-light: #fce7f3;
+
+  --secondary: #f9a8d4;
+  --navy: #111827;
+  --black: #050505;
+
+  --card: #ffffff;
+  --border: #e5e7eb;
+}
+
+.dark {
+  --background: #050505;
+  --foreground: #f9fafb;
+
+  --primary: #9f1239;
+  --primary-light: #3f0a1b;
+
+  --secondary: #f472b6;
+  --navy: #111827;
+  --black: #000000;
+
+  --card: #0f172a;
+  --border: #1f2937;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--primary);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
