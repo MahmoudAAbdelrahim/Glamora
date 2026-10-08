@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
+if (typeof MONGODB_URI !== "string" || !MONGODB_URI.trim()) {
   throw new Error(
     "Please define MONGODB_URI in .env.local"
   );
@@ -26,18 +26,21 @@ const cached: MongooseCache =
 
 global.mongooseCache = cached;
 
-export async function connectDB() {
+export async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(
-      MONGODB_URI
-    );
+    cached.promise = mongoose.connect(MONGODB_URI);
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (error) {
+    cached.promise = null;
+    throw error;
+  }
 
   return cached.conn;
 }
