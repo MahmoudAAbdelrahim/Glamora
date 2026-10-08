@@ -14,6 +14,7 @@
     "bootstrap-icons": "^1.13.1",
     "cloudinary": "^2.11.0",
     "express": "^5.2.1",
+    "framer-motion": "^14.0.0",
     "jose": "^6.2.12",
     "lucide-react": "^1.52.0",
     "mongoose": "^9.11.1",
