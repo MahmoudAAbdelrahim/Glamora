@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTheme } from "next-themes";
-import { Inter, Playfair_Display } from "next/font/google";
 import { ArrowRight, ChevronDown, Heart, Quote, Star } from "lucide-react";
 
 import {
@@ -20,16 +19,7 @@ import {
 /* =========================================================
    FONTS (نفس خطوط التصميم)
 ========================================================= */
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  display: "swap",
-});
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  display: "swap",
-});
+
 
 /* =========================================================
    STYLES — كل الستايل جوه الملف، و .gl-home / .gl-hero بيغلبوا Bootstrap
@@ -421,7 +411,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
 
       <main
         dir={isAr ? "rtl" : "ltr"}
-        className={`gl-home ${inter.className}`}
+        className={`gl-home `}
         data-theme={dark ? "dark" : "light"}
       >
         {/* ================= 1. HERO ================= */}
@@ -438,7 +428,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
             <div className="gl-shade" />
 
             <div className="gl-content">
-              <h1 className={`gl-title ${playfair.className}`}>{t.heroTitle}</h1>
+              <h1 className={`gl-title `}>{t.heroTitle}</h1>
               <p className="gl-desc">{t.heroDesc}</p>
               <div className="gl-cta">
                 <Link href={`/${locale}/products`} className="gl-btn">
@@ -463,7 +453,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
         {/* ================= 2. PRODUCT FINDER ================= */}
         <section className="gl-sec gl-find">
           <div className="gl-wrap">
-            <h2 className={`gl-h2 ${playfair.className}`}>{t.findTitle}</h2>
+            <h2 className={`gl-h2 `}>{t.findTitle}</h2>
             <p className="gl-sub">{t.findDesc}</p>
 
             <div className="gl-panels">
@@ -548,7 +538,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
         <section className="gl-sec gl-bs">
           <div className="gl-wrap">
             <div className="gl-head">
-              <h2 className={`gl-h2 ${playfair.className}`}>{t.bsTitle}</h2>
+              <h2 className={`gl-h2 `}>{t.bsTitle}</h2>
               <Link href={`/${locale}/products`} className="gl-all">
                 <span>{t.viewAll}</span>
                 <ArrowRight
@@ -601,7 +591,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
         <section className="gl-sec gl-rev">
           <div className="gl-wrap">
             <div style={{ textAlign: "center" }}>
-              <h2 className={`gl-h2 ${playfair.className}`}>{t.revTitle}</h2>
+              <h2 className={`gl-h2 `}>{t.revTitle}</h2>
               <p className="gl-sub">{t.revSub}</p>
               <div className="gl-pill">
                 <Star size={18} fill="var(--star)" strokeWidth={0} />
