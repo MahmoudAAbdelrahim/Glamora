@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { isValidObjectId } from "mongoose";
 
-import {connectDB} from "../../../../../../lib/db";
+import { connectDB } from "../../../../../../lib/db";
 import Product from "../../../../../../models/Product";
 
-const validCategories = [
-  "skincare",
-  "makeup",
-];
+const validCategories = ["skincare", "makeup"];
 
 const validSkinTypes = [
   "all",
@@ -36,20 +33,17 @@ const validConcerns = [
   "dehydration",
 ];
 
-async function requireAdmin(
-  request: NextRequest
-) {
-  const token =
-    request.cookies.get("accessToken")?.value;
+async function requireAdmin(request: NextRequest) {
+  const token = request.cookies.get("accessToken")?.value;
 
-  if (!token) return null;
+  if (!token) {
+    return null;
+  }
 
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
-    throw new Error(
-      "JWT_SECRET is not configured"
-    );
+    throw new Error("JWT_SECRET is not configured");
   }
 
   try {
@@ -58,10 +52,7 @@ async function requireAdmin(
       new TextEncoder().encode(secret)
     );
 
-    if (
-      payload.role !== "admin" ||
-      !payload.userId
-    ) {
+    if (payload.role !== "admin" || !payload.userId) {
       return null;
     }
 
@@ -77,66 +68,45 @@ type Context = {
   }>;
 };
 
-function stringValue(
-  value: unknown
-) {
-  return typeof value === "string"
-    ? value.trim()
-    : undefined;
+function stringValue(value: unknown): string | undefined {
+  return typeof value === "string" ? value.trim() : undefined;
 }
 
-function numberValue(
-  value: unknown
-) {
-  if (
-    value === "" ||
-    value === null ||
-    value === undefined
-  ) {
+function numberValue(value: unknown): number | undefined {
+  if (value === "" || value === null || value === undefined) {
     return undefined;
   }
 
   const number = Number(value);
 
-  return Number.isFinite(number)
-    ? number
-    : undefined;
+  return Number.isFinite(number) ? number : undefined;
 }
 
-function booleanValue(
-  value: unknown
-) {
-  return typeof value === "boolean"
-    ? value
-    : undefined;
+function booleanValue(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
 }
 
-function arrayValue(
-  value: unknown
-) {
+function arrayValue(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) {
     return undefined;
   }
 
   return value
-    .filter(
-      (item): item is string =>
-        typeof item === "string"
-    )
+    .filter((item): item is string => typeof item === "string")
     .map((item) => item.trim())
     .filter(Boolean);
 }
 
-/*
- * PATCH
- */
+/* =========================================================
+   PATCH
+========================================================= */
+
 export async function PATCH(
   request: NextRequest,
   { params }: Context
 ) {
   try {
-    const admin =
-      await requireAdmin(request);
+    const admin = await requireAdmin(request);
 
     if (!admin) {
       return NextResponse.json(
@@ -154,8 +124,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Invalid product ID",
+          message: "Invalid product ID",
         },
         { status: 400 }
       );
@@ -163,37 +132,35 @@ export async function PATCH(
 
     await connectDB();
 
-    const product =
-      await Product.findOne({
-        _id: id,
-        deletedAt: null,
-      });
+    const product = await Product.findOne({
+      _id: id,
+      deletedAt: null,
+    });
 
     if (!product) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Product not found",
+          message: "Product not found",
         },
         { status: 404 }
       );
     }
 
-    const body =
-      await request.json();
+    const body = await request.json();
+
+    /* =========================
+       NAME
+    ========================= */
 
     if (body.name !== undefined) {
-      const name = stringValue(
-        body.name
-      );
+      const name = stringValue(body.name);
 
       if (!name || name.length < 2) {
         return NextResponse.json(
           {
             success: false,
-            message:
-              "Invalid product name",
+            message: "Invalid product name",
           },
           { status: 400 }
         );
@@ -202,17 +169,18 @@ export async function PATCH(
       product.name = name;
     }
 
+    /* =========================
+       BRAND
+    ========================= */
+
     if (body.brand !== undefined) {
-      const brand = stringValue(
-        body.brand
-      );
+      const brand = stringValue(body.brand);
 
       if (!brand) {
         return NextResponse.json(
           {
             success: false,
-            message:
-              "Brand is required",
+            message: "Brand is required",
           },
           { status: 400 }
         );
@@ -221,48 +189,44 @@ export async function PATCH(
       product.brand = brand;
     }
 
+    /* =========================
+       CATEGORY
+    ========================= */
+
     if (body.category !== undefined) {
-      if (
-        !validCategories.includes(
-          body.category
-        )
-      ) {
+      if (!validCategories.includes(body.category)) {
         return NextResponse.json(
           {
             success: false,
-            message:
-              "Invalid category",
+            message: "Invalid category",
           },
           { status: 400 }
         );
       }
 
-      product.category =
-        body.category;
+      product.category = body.category;
     }
 
-    if (
-      body.description !== undefined
-    ) {
-      product.description =
-        stringValue(
-          body.description
-        ) || "";
+    /* =========================
+       DESCRIPTION
+    ========================= */
+
+    if (body.description !== undefined) {
+      product.description = stringValue(body.description) || "";
     }
+
+    /* =========================
+       PRICE
+    ========================= */
 
     if (body.price !== undefined) {
-      const price =
-        numberValue(body.price);
+      const price = numberValue(body.price);
 
-      if (
-        price === undefined ||
-        price <= 0
-      ) {
+      if (price === undefined || price <= 0) {
         return NextResponse.json(
           {
             success: false,
-            message:
-              "Invalid price",
+            message: "Invalid price",
           },
           { status: 400 }
         );
@@ -271,13 +235,12 @@ export async function PATCH(
       product.price = price;
     }
 
-    if (
-      body.discountPrice !== undefined
-    ) {
-      const discountPrice =
-        numberValue(
-          body.discountPrice
-        );
+    /* =========================
+       DISCOUNT PRICE
+    ========================= */
+
+    if (body.discountPrice !== undefined) {
+      const discountPrice = numberValue(body.discountPrice);
 
       if (
         discountPrice !== undefined &&
@@ -293,9 +256,12 @@ export async function PATCH(
         );
       }
 
-      product.discountPrice =
-        discountPrice;
+      product.discountPrice = discountPrice;
     }
+
+    /* =========================
+       IMAGES
+    ========================= */
 
     if (body.images !== undefined) {
       if (
@@ -320,27 +286,18 @@ export async function PATCH(
           url: string;
           publicId: string;
         } =>
-          typeof image ===
-            "object" &&
+          typeof image === "object" &&
           image !== null &&
-          typeof (
-            image as {
-              url?: unknown;
-            }
-          ).url === "string" &&
-          typeof (
-            image as {
-              publicId?: unknown;
-            }
-          ).publicId === "string"
+          typeof (image as { url?: unknown }).url === "string" &&
+          typeof (image as { publicId?: unknown }).publicId ===
+            "string"
       );
 
       if (images.length !== body.images.length) {
         return NextResponse.json(
           {
             success: false,
-            message:
-              "Invalid product images",
+            message: "Invalid product images",
           },
           { status: 400 }
         );
@@ -349,106 +306,85 @@ export async function PATCH(
       product.images = images;
     }
 
-    if (
-      body.skinTypes !== undefined
-    ) {
-      const skinTypes =
-        arrayValue(
-          body.skinTypes
-        ) || [];
+    /* =========================
+       SKIN TYPES
+    ========================= */
+
+    if (body.skinTypes !== undefined) {
+      const skinTypes = arrayValue(body.skinTypes) || [];
 
       if (
         skinTypes.some(
-          (item) =>
-            !validSkinTypes.includes(
-              item
-            )
+          (item) => !validSkinTypes.includes(item)
         )
       ) {
         return NextResponse.json(
           {
             success: false,
-            message:
-              "Invalid skin type",
+            message: "Invalid skin type",
           },
           { status: 400 }
         );
       }
 
-      product.skinTypes =
-        skinTypes as typeof product.skinTypes;
+      product.skinTypes = skinTypes as typeof product.skinTypes;
     }
 
-    if (
-      body.concerns !== undefined
-    ) {
-      const concerns =
-        arrayValue(
-          body.concerns
-        ) || [];
+    /* =========================
+       CONCERNS
+    ========================= */
+
+    if (body.concerns !== undefined) {
+      const concerns = arrayValue(body.concerns) || [];
 
       if (
         concerns.some(
-          (item) =>
-            !validConcerns.includes(
-              item
-            )
+          (item) => !validConcerns.includes(item)
         )
       ) {
         return NextResponse.json(
           {
             success: false,
-            message:
-              "Invalid concern",
+            message: "Invalid concern",
           },
           { status: 400 }
         );
       }
 
-      product.concerns =
-        concerns as typeof product.concerns;
+      product.concerns = concerns as typeof product.concerns;
     }
 
-    if (
-      body.ingredients !== undefined
-    ) {
-      product.ingredients =
-        arrayValue(
-          body.ingredients
-        ) || [];
+    /* =========================
+       INGREDIENTS
+    ========================= */
+
+    if (body.ingredients !== undefined) {
+      product.ingredients = arrayValue(body.ingredients) || [];
     }
 
-    if (
-      body.benefits !== undefined
-    ) {
-      product.benefits =
-        arrayValue(
-          body.benefits
-        ) || [];
+    /* =========================
+       BENEFITS
+    ========================= */
+
+    if (body.benefits !== undefined) {
+      product.benefits = arrayValue(body.benefits) || [];
     }
 
-    if (
-      body.howToUse !== undefined
-    ) {
-      product.howToUse =
-        stringValue(
-          body.howToUse
-        ) || "";
+    /* =========================
+       HOW TO USE
+    ========================= */
+
+    if (body.howToUse !== undefined) {
+      product.howToUse = stringValue(body.howToUse) || "";
     }
 
-    if (
-      body.suitableForAge !==
-      undefined
-    ) {
-      const min =
-        numberValue(
-          body.suitableForAge?.min
-        );
+    /* =========================
+       SUITABLE AGE
+    ========================= */
 
-      const max =
-        numberValue(
-          body.suitableForAge?.max
-        );
+    if (body.suitableForAge !== undefined) {
+      const min = numberValue(body.suitableForAge?.min);
+      const max = numberValue(body.suitableForAge?.max);
 
       if (
         min !== undefined &&
@@ -466,38 +402,39 @@ export async function PATCH(
       }
 
       product.suitableForAge = {
-        ...(min !== undefined
-          ? { min }
-          : {}),
-        ...(max !== undefined
-          ? { max }
-          : {}),
+        ...(min !== undefined ? { min } : {}),
+        ...(max !== undefined ? { max } : {}),
       };
     }
 
+    /* =========================
+       SHADE
+    ========================= */
+
     if (body.shade !== undefined) {
-      product.shade =
-        stringValue(body.shade);
+      product.shade = stringValue(body.shade);
     }
+
+    /* =========================
+       SIZE
+    ========================= */
 
     if (body.size !== undefined) {
-      product.size =
-        stringValue(body.size);
+      product.size = stringValue(body.size);
     }
 
-    if (body.stock !== undefined) {
-      const stock =
-        numberValue(body.stock);
+    /* =========================
+       STOCK
+    ========================= */
 
-      if (
-        stock === undefined ||
-        stock < 0
-      ) {
+    if (body.stock !== undefined) {
+      const stock = numberValue(body.stock);
+
+      if (stock === undefined || stock < 0) {
         return NextResponse.json(
           {
             success: false,
-            message:
-              "Invalid stock",
+            message: "Invalid stock",
           },
           { status: 400 }
         );
@@ -506,142 +443,128 @@ export async function PATCH(
       product.stock = stock;
     }
 
-    if (
-      body.lowStockThreshold !==
-      undefined
-    ) {
-      const threshold =
-        numberValue(
-          body.lowStockThreshold
-        );
+    /* =========================
+       LOW STOCK THRESHOLD
+    ========================= */
 
-      if (
-        threshold === undefined ||
-        threshold < 0
-      ) {
+    if (body.lowStockThreshold !== undefined) {
+      const threshold = numberValue(
+        body.lowStockThreshold
+      );
+
+      if (threshold === undefined || threshold < 0) {
         return NextResponse.json(
           {
             success: false,
-            message:
-              "Invalid low stock threshold",
+            message: "Invalid low stock threshold",
           },
           { status: 400 }
         );
       }
 
-      product.lowStockThreshold =
-        threshold;
+      product.lowStockThreshold = threshold;
     }
 
+    /* =========================
+       SKU
+    ========================= */
+
     if (body.sku !== undefined) {
-      const sku =
-        stringValue(body.sku);
+      const sku = stringValue(body.sku);
 
       if (sku) {
-        const existing =
-          await Product.findOne({
-            sku: sku.toUpperCase(),
-            _id: {
-              $ne: id,
-            },
-            deletedAt: null,
-          });
+        const normalizedSku = sku.toUpperCase();
+
+        const existing = await Product.findOne({
+          sku: normalizedSku,
+          _id: {
+            $ne: id,
+          },
+          deletedAt: null,
+        });
 
         if (existing) {
           return NextResponse.json(
             {
               success: false,
-              message:
-                "SKU already exists",
+              message: "SKU already exists",
             },
             { status: 409 }
           );
         }
 
-        product.sku =
-          sku.toUpperCase();
+        product.sku = normalizedSku;
       } else {
         product.sku = undefined;
       }
     }
 
-    const featured =
-      booleanValue(body.featured);
+    /* =========================
+       FEATURED
+    ========================= */
+
+    const featured = booleanValue(body.featured);
 
     if (featured !== undefined) {
-      product.featured =
-        featured;
+      product.featured = featured;
     }
 
-    const bestSeller =
-      booleanValue(
-        body.bestSeller
-      );
+    /* =========================
+       BEST SELLER
+    ========================= */
+
+    const bestSeller = booleanValue(body.bestSeller);
 
     if (bestSeller !== undefined) {
-      product.bestSeller =
-        bestSeller;
+      product.bestSeller = bestSeller;
     }
 
-    const isActive =
-      booleanValue(
-        body.isActive
-      );
+    /* =========================
+       ACTIVE
+    ========================= */
+
+    const isActive = booleanValue(body.isActive);
 
     if (isActive !== undefined) {
-      product.isActive =
-        isActive;
+      product.isActive = isActive;
     }
+
+    /* =========================
+       SAVE
+    ========================= */
 
     await product.save();
 
     return NextResponse.json({
       success: true,
-      message:
-        "Product updated successfully",
-
+      message: "Product updated successfully",
       data: {
         product: {
           id: product._id.toString(),
           name: product.name,
           brand: product.brand,
           category: product.category,
-          description:
-            product.description,
+          description: product.description,
           price: product.price,
-          discountPrice:
-            product.discountPrice,
+          discountPrice: product.discountPrice,
           images: product.images,
-          skinTypes:
-            product.skinTypes,
-          concerns:
-            product.concerns,
-          ingredients:
-            product.ingredients,
-          benefits:
-            product.benefits,
-          howToUse:
-            product.howToUse,
-          suitableForAge:
-            product.suitableForAge,
+          skinTypes: product.skinTypes,
+          concerns: product.concerns,
+          ingredients: product.ingredients,
+          benefits: product.benefits,
+          howToUse: product.howToUse,
+          suitableForAge: product.suitableForAge,
           shade: product.shade,
           size: product.size,
           stock: product.stock,
-          lowStockThreshold:
-            product.lowStockThreshold,
+          lowStockThreshold: product.lowStockThreshold,
           sku: product.sku,
-          rating:
-            product.rating,
-          reviewsCount:
-            product.reviewsCount,
-          featured:
-            product.featured,
-          bestSeller:
-            product.bestSeller,
-          isActive:
-            product.isActive,
-          updatedAt:
-            product.updatedAt,
+          rating: product.rating,
+          reviewsCount: product.reviewsCount,
+          featured: product.featured,
+          bestSeller: product.bestSeller,
+          isActive: product.isActive,
+          updatedAt: product.updatedAt,
         },
       },
     });
@@ -654,25 +577,23 @@ export async function PATCH(
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Failed to update product",
+        message: "Failed to update product",
       },
       { status: 500 }
     );
   }
 }
 
-/*
- * DELETE
- * Soft delete.
- */
+/* =========================================================
+   DELETE
+========================================================= */
+
 export async function DELETE(
   request: NextRequest,
   { params }: Context
 ) {
   try {
-    const admin =
-      await requireAdmin(request);
+    const admin = await requireAdmin(request);
 
     if (!admin) {
       return NextResponse.json(
@@ -690,8 +611,7 @@ export async function DELETE(
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Invalid product ID",
+          message: "Invalid product ID",
         },
         { status: 400 }
       );
@@ -699,34 +619,30 @@ export async function DELETE(
 
     await connectDB();
 
-    const product =
-      await Product.findOne({
-        _id: id,
-        deletedAt: null,
-      });
+    const product = await Product.findOne({
+      _id: id,
+      deletedAt: null,
+    });
 
     if (!product) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Product not found",
+          message: "Product not found",
         },
         { status: 404 }
       );
     }
 
-    product.deletedAt =
-      new Date();
-
+    // Soft delete
+    product.deletedAt = new Date();
     product.isActive = false;
 
     await product.save();
 
     return NextResponse.json({
       success: true,
-      message:
-        "Product deleted successfully",
+      message: "Product deleted successfully",
     });
   } catch (error) {
     console.error(
@@ -737,33 +653,30 @@ export async function DELETE(
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Failed to delete product",
+        message: "Failed to delete product",
       },
       { status: 500 }
     );
   }
 }
-/*
- * ============================================================
- * الصق الدالة دي في آخر ملف:
- *   app/api/admin/dashboard/products/[id]/route.ts   (بعد دالة DELETE)
- *
- * مفيش imports جديدة مطلوبة، كلهم موجودين عندك فوق في نفس الملف
- * (NextRequest, NextResponse, isValidObjectId, connectDB, Product, requireAdmin, Context).
- * ============================================================
- */
 
-/*
- * GET: تفاصيل منتج واحد (للأدمن) — بتستخدمها صفحة التفاصيل وصفحة التعديل
- */
-export async function GET(request: NextRequest, { params }: Context) {
+/* =========================================================
+   GET SINGLE PRODUCT
+========================================================= */
+
+export async function GET(
+  request: NextRequest,
+  { params }: Context
+) {
   try {
     const admin = await requireAdmin(request);
 
     if (!admin) {
       return NextResponse.json(
-        { success: false, message: "Unauthorized" },
+        {
+          success: false,
+          message: "Unauthorized",
+        },
         { status: 401 }
       );
     }
@@ -772,7 +685,10 @@ export async function GET(request: NextRequest, { params }: Context) {
 
     if (!isValidObjectId(id)) {
       return NextResponse.json(
-        { success: false, message: "Invalid product ID" },
+        {
+          success: false,
+          message: "Invalid product ID",
+        },
         { status: 400 }
       );
     }
@@ -786,7 +702,10 @@ export async function GET(request: NextRequest, { params }: Context) {
 
     if (!product) {
       return NextResponse.json(
-        { success: false, message: "Product not found" },
+        {
+          success: false,
+          message: "Product not found",
+        },
         { status: 404 }
       );
     }
@@ -826,10 +745,16 @@ export async function GET(request: NextRequest, { params }: Context) {
       },
     });
   } catch (error) {
-    console.error("ADMIN_PRODUCT_GET_ERROR:", error);
+    console.error(
+      "ADMIN_PRODUCT_GET_ERROR:",
+      error
+    );
 
     return NextResponse.json(
-      { success: false, message: "Failed to load product" },
+      {
+        success: false,
+        message: "Failed to load product",
+      },
       { status: 500 }
     );
   }
