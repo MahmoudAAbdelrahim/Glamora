@@ -1,6 +1,5 @@
 import ProfileClient from "../../../components/Profile/ProfileClient";
 
-export const instant = false;
 
 interface ProfilePageProps {
   params: Promise<{
