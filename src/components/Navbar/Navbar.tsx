@@ -61,33 +61,33 @@ interface SearchProduct {
 }
 
 const CSS = `
-.gl-nav{
-  --bg:rgba(255,255,255,.97);
-  --panel:#fff;
-  --bd:#f0dfe3;
-  --ink:#2a1a1f;
-  --link:#8b1538;
-  --dim:rgba(42,26,31,.68);
-  --hov:#fbe4e8;
-  --acc:#8b1538;
-  --acc-d:#6e0f2c;
-  --out:#8b1538;
-  --lb:#ead9de;
-  --p1:#8b1538;
-  --p2:#d6506f;
-  --p3:#f4b6c2;
+.gl-nav {
+  --bg: rgba(255, 255, 255, 0.97);
+  --panel: #fff;
+  --bd: #f0dfe3;
+  --ink: #2a1a1f;
+  --link: #8b1538;
+  --dim: rgba(42, 26, 31, 0.68);
+  --hov: #fbe4e8;
+  --acc: #8b1538;
+  --acc-d: #6e0f2c;
+  --out: #8b1538;
+  --lb: #ead9de;
+  --p1: #8b1538;
+  --p2: #d6506f;
+  --p3: #f4b6c2;
 
-  position:sticky;
-  top:0;
-  z-index:1000;
-
-  width:100%;
-
-  background:var(--bg);
-  border-bottom:1px solid var(--bd);
-
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  isolation: isolate;
+  width: 100%;
+  max-width: 100%;
+  background: var(--bg);
+  border-bottom: 1px solid var(--bd);
+  box-sizing: border-box;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .gl-nav[data-theme="dark"]{
@@ -902,28 +902,52 @@ const CSS = `
    MOBILE
 ========================= */
 
-@media(max-width:575px){
 
-  .gl-nav .gl-bar{
-    min-height:68px;
-
-    padding:
-      9px 11px;
+@media (max-width: 575px) {
+  .gl-nav .gl-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 10px 12px;
   }
 
-  .gl-nav .gl-actions{
-    gap:2px;
-    padding-inline-start:3px;
+  .gl-nav .gl-logo {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
   }
 
-  .gl-nav .gl-ic{
-    width:38px;
-    height:38px;
-
-    flex-basis:38px;
-
-    border-radius:10px;
+  .gl-nav .gl-actions {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
   }
+
+  .gl-nav .gl-ic,
+  .gl-nav .gl-lang,
+  .gl-nav .gl-profile {
+    flex-shrink: 0;
+  }
+
+  .gl-nav .gl-mobile-searchbox {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+
 
   .gl-nav .gl-search-wrap{
     width:38px;
