@@ -1237,12 +1237,26 @@ export default function CheckoutPage() {
 
             <aside>
               <SummaryPanel
-                locale={locale}
-                items={cart.items}
-                subtotal={cart.subtotal}
-                shipping={cart.shipping}
-                total={cart.total}
-              />
+  locale={locale}
+  subtotal={cart.subtotal}
+  shipping={cart.shipping}
+  action={
+    <button
+      type="button"
+      className="gc-place-order"
+      onClick={placeOrder}
+      disabled={submitting || cart.loading || !cart.items.length}
+    >
+      {submitting
+        ? isAr
+          ? "جاري إنشاء الطلب..."
+          : "Creating order..."
+        : isAr
+          ? "تأكيد الطلب"
+          : "Place order"}
+    </button>
+  }
+/>
             </aside>
           </div>
         </div>
