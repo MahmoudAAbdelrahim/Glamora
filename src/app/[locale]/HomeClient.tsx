@@ -284,6 +284,7 @@ type ApiProduct = {
   rating: number;
   reviewsCount: number;
   bestSeller?: boolean;
+  isActive?: boolean;
 };
 
 type ApiReview = {
