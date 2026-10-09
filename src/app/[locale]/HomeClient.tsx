@@ -13,21 +13,10 @@ import {
   type ReactNode,
 } from "react";
 import { useTheme } from "next-themes";
-import { Inter, Playfair_Display } from "next/font/google";
 import { ArrowRight, ChevronDown, Heart, Quote, ShoppingBag, Star } from "lucide-react";
 import { useAuth } from "@/src/components/providers/AuthProvider";
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  display: "swap",
-});
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 /* =========================================================
    صور الكاتيجوريز: لو عندك روابط صور حقيقية حطها هنا (بتغلب أي حاجة)
@@ -792,7 +781,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
     <>
       <style>{CSS}</style>
 
-      <main dir={isAr ? "rtl" : "ltr"} className={`gl-home ${inter.className}`} data-theme={dark ? "dark" : "light"}>
+      <main dir={isAr ? "rtl" : "ltr"} className={`gl-home gl-inter`} data-theme={dark ? "dark" : "light"}>
         {/* ================= 1. HERO ================= */}
         <section dir={isAr ? "rtl" : "ltr"} className="gl-hero">
           <div className="gl-stage">
@@ -808,7 +797,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
             <div className="gl-shade" />
 
             <div className="gl-content">
-              <h1 className={`gl-title ${playfair.className}`}>{heroTitle}</h1>
+              <h1 className={`gl-title gl-inter`}>{heroTitle}</h1>
               <p className="gl-desc">
                 {L(
                   "Discover makeup products specially selected for your skin type.",
@@ -834,7 +823,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
         {/* ================= 2. PRODUCT FINDER ================= */}
         <section className="gl-sec gl-find">
           <div className="gl-wrap">
-            <h2 className={`gl-h2 ${playfair.className}`}>{L("Find Your Perfect Products", "اكتشفي منتجاتك المثالية")}</h2>
+            <h2 className={`gl-h2 gl-inter`}>{L("Find Your Perfect Products", "اكتشفي منتجاتك المثالية")}</h2>
             <p className="gl-sub">
               {L(
                 "Tell us about your skin type and budget to get personalized recommendations.",
@@ -891,7 +880,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
             <div className="gl-wrap">
               <div className="gl-resh">
                 <div>
-                  <h2 className={`gl-h2 ${playfair.className}`}>{L("Recommended for you", "مناسبة لك")}</h2>
+                  <h2 className={`gl-h2 gl-inter`}>{L("Recommended for you", "مناسبة لك")}</h2>
                   <small>{L(`${results.length} products match your choices`, `${results.length} منتج مناسب لاختياراتك`)}</small>
                 </div>
 
@@ -948,7 +937,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
         <section className="gl-sec gl-bs">
           <div className="gl-wrap">
             <div className="gl-head">
-              <h2 className={`gl-h2 ${playfair.className}`}>{L("Best Sellers", "الأكثر مبيعًا")}</h2>
+              <h2 className={`gl-h2 gl-inter`}>{L("Best Sellers", "الأكثر مبيعًا")}</h2>
               <Link href={`/${locale}/products`} className="gl-all">
                 <span>{L("View All", "عرض الكل")}</span>
                 <ArrowRight size="1.1em" strokeWidth={2.2} style={ArrowFlip} />
@@ -973,7 +962,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
         <section className="gl-sec gl-rev">
           <div className="gl-wrap">
             <div style={{ textAlign: "center" }}>
-              <h2 className={`gl-h2 ${playfair.className}`}>{L("What Our Customers Say", "آراء عملائنا")}</h2>
+              <h2 className={`gl-h2 gl-inter`}>{L("What Our Customers Say", "آراء عملائنا")}</h2>
               <p className="gl-sub">{L("Real experiences from people who chose Glamora.", "تجارب حقيقية من الأشخاص الذين اختاروا Glamora.")}</p>
 
               <div className="gl-pill">
@@ -1022,7 +1011,7 @@ export default function HomeClient({ locale }: { locale: "ar" | "en" }) {
 
             {/* قيّمنا */}
             <form className="gl-rate-card" onSubmit={submitReview}>
-              <h3 className={playfair.className}>{L("Rate Your Experience", "قيّمي تجربتك معنا")}</h3>
+              <h3 className="gl-playfair">{L("Rate Your Experience", "قيّمي تجربتك معنا")}</h3>
               <p className="gl-muted">{L("Your opinion helps other customers choose better.", "رأيك بيساعد غيرك في الاختيار.")}</p>
 
               <div className="gl-starin" onMouseLeave={() => setHover(0)}>
